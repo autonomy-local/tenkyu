@@ -14,8 +14,8 @@ body:
     id: task-id
     attributes:
       label: タスクID
-      description: docs/migration-phases.md などの計画にある ID。無ければ空でかまいません
-      placeholder: "例：P0-2 / 2.1"
+      description: README の「これからの予定」などの計画にある ID。無ければ空でかまいません
+      placeholder: "例：今-1 / 次-2"
     validations:
       required: false
 
@@ -25,8 +25,8 @@ body:
       label: 背景と目的
       description: なぜこの作業が必要か。終わると何ができるようになるか
       placeholder: |
-        例：フェーズ0のゴール（Bootstrap が動く）に向けて、開発に必要なツールを1つのコマンドでそろえたい。
-        これができると、新しいコントリビューターと AI エージェントが同じ環境で作業を始められる。
+        例：利用者がパスワードなしでログインできるように、メールの確認コード（6桁）で本人を確かめたい。
+        これができると、らくらくスマートフォンや LINE の中のブラウザからでもログインできる。
     validations:
       required: true
 
@@ -36,8 +36,8 @@ body:
       label: やること
       description: 作業の中身。触ってよいファイルやディレクトリが決まっていれば書きます
       placeholder: |
-        - `flake.nix` に開発シェルを追加する（Go、Bun、Node、wrangler、Pulumi、sqlc、psql、sops、age）
-        - 変更してよい範囲：`flake.nix`、`flake.lock`、`README.md` の「開発環境」節
+        - 確認コードを発行し、D1 に有効期限つきで保存する Worker のエンドポイントを追加する
+        - 変更してよい範囲：`src/`、`migrations/`、`README.md` の「何をするか」節
     validations:
       required: true
 
@@ -49,9 +49,9 @@ body:
         PR でレビューアーが1つずつ確認するチェックリストです。各項目に「何を見れば判定できるか」（コマンドとその結果、ファイルのパス、テスト名、CI のジョブ名など）を書きます。
         `- [ ] ` で始まるチェックリストで書きます。PR の作成者は、PR の本文でこの項目ごとに満たしたことの根拠を示します
       placeholder: |
-        - [ ] `nix develop -c go version` が成功する
-        - [ ] `nix develop` の中で `bun`、`node`、`wrangler`、`pulumi`、`sqlc`、`psql`、`sops`、`age` がすべて実行できる
-        - [ ] README の「開発環境」節に `nix develop` の手順が書かれている
+        - [ ] 確認コードの発行と検証のテストが CI で通る
+        - [ ] 期限の切れたコードで検証すると失敗するテストがある
+        - [ ] `auth_events` に、発行と検証の記録が残る
     validations:
       required: true
 
@@ -61,8 +61,8 @@ body:
       label: やらないこと
       description: この Issue では扱わないこと。範囲を広げそうなものを先に書いておきます。別の Issue にする場合はリンクします
       placeholder: |
-        - ローカルの PostgreSQL の起動（#12 で扱う）
-        - CI への組み込み
+        - メールの送信の仕組み（#12 で扱う）
+        - パスキー
     validations:
       required: true
 
@@ -71,7 +71,7 @@ body:
     attributes:
       label: 前提となる Issue
       description: 先に終わっている必要がある Issue。無ければ「なし」と書きます
-      placeholder: "例：#3（レポと文書）／なし"
+      placeholder: "例：#3（セッションの表）／なし"
     validations:
       required: true
 
@@ -81,7 +81,7 @@ body:
       label: 参考
       description: 仕様、決定事項（ADR）、旧実装の該当箇所、関連する文書へのリンク
       placeholder: |
-        - docs/migration-phases.md の「P0-2　開発環境（Nix）」
+        - README の「誰でも使えるようにする」
     validations:
       required: false
 
@@ -91,9 +91,9 @@ body:
       label: 修正を提供する場合の同意（任意）
       description: |
         自分のフォークでの修正へのリンクをこの Issue に書く場合だけ、チェックしてください。修正がない Issue では空のままで構いません。
-        条件は [CONTRIBUTING.md](https://github.com/autonomy-local/funadansu/blob/main/CONTRIBUTING.md) の「修正の条件」にあります。
+        修正は、このリポジトリの [LICENSE](https://github.com/autonomy-local/tenkyu/blob/main/LICENSE)（Apache License 2.0）で提供されるものとして扱います。
       options:
-        - label: 修正は MIT License で提供します
+        - label: 修正は Apache License 2.0 で提供します
         - label: 各コミットに Signed-off-by（DCO）を付けています
     validations:
       required: false
