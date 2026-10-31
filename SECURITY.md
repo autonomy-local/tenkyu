@@ -9,7 +9,7 @@ Tenkyu はアカウントの基盤なので、脆弱性の報告を最も重く�
 次のどちらかの方法で、非公開で報告してください。
 
 - GitHub の [Private vulnerability reporting](../../security/advisories/new)（このリポジトリの「Security」タブ）
-- メール：`security@（ドメインを記入）`
+- メール：`info@autonomy-association.co.jp`
 
 報告には、次のことを書いていただけると助かります。
 
@@ -30,5 +30,5 @@ Tenkyu はアカウントの基盤なので、脆弱性の報告を最も重く�
 ## English
 
 Please do not report security vulnerabilities through public issues.
-Use GitHub's private vulnerability reporting for this repository, or email `security@(domain)`.
+Use GitHub's private vulnerability reporting for this repository, or email `info@autonomy-association.co.jp`.
 We will acknowledge your report within 3 business days.
