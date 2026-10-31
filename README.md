@@ -90,6 +90,33 @@ Tenkyu は「個人の情報を持たない」とは言わず、「氏名や連�
 | 暗号 | Web Crypto API |
 | 構成管理 | Pulumi |
 
+## 開発の環境
+
+手元でも CI でも同じ版の道具で開発できるように、Nix（flake）で開発環境を管理しています。
+
+### 前提条件
+
+- [Nix](https://nixos.org/) がインストールされ、Flakes が有効になっていること
+
+### 始め方
+
+リポジトリの直下で次のコマンドを実行すると、開発に必要な道具（Node.js、pnpm、wrangler、Pulumi など）が揃ったシェルに入ります。
+
+```bash
+nix develop
+```
+
+direnv を使っている場合は、初回に `direnv allow` を実行すると、リポジトリに入るだけで自動的に環境が読み込まれます。
+
+シェル内で以下のコマンドが実行できることを確認できます。
+
+```bash
+node --version
+pnpm --version
+wrangler --version
+pulumi version
+```
+
 ## 状態
 
 開発中です。仕様は予告なく変わることがあります。
