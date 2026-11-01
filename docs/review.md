@@ -68,7 +68,7 @@ review-gate が success ＋ check が success → マージできる
 - 自分の PR は「承認」できないが、「コメント」のレビューは付けられる。一人で回している間はこれが印になる
 - 人のコメントは、**critical のファイルを最後に変えたコミット以降**のものだけを数える。レビューの後に critical のファイルを直したら、付け直す（critical でないファイルの修正なら、そのまま）
 - bot（Jules、CodeRabbit）のコメントは数えない
-- 担当は CODEOWNERS（最後に当たった行）。チーム（`@org/team`）が担当なら、bot 以外で、リポジトリや組織の関係者（OWNER、MEMBER、COLLABORATOR）を数える
+- 担当は CODEOWNERS（最後に当たった行）。チーム（`@org/team`）が担当なら、bot 以外の関係者を数える。関係者は `author_association` が OWNER、MEMBER、COLLABORATOR の人か、リポジトリに書き込みの権限がある人。個人の担当も、関係者でなければ数えない
 - `reviewer_must_have_toured: true` にすると、その領域のツアーを済ませた人（`.github/settings/ownership.yml`）のコメントだけを数える
 
 ## AI のレビュー（CodeRabbit）
