@@ -14,4 +14,4 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "PR #${{ github.event.pull_request.number }}"
+      - run: echo "レビューの変更を review-gate に知らせる"
