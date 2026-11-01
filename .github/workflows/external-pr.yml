@@ -1,0 +1,37 @@
+# 外からの PR を閉じ、フォークと Issue での知らせ方を案内する（CONTRIBUTING.md）。
+# 主の止め方は、リポジトリの設定（Settings → General → Features → Pull requests → Collaborators only）。
+# これは設定が外れたとき・効かなかったときの保険。
+#
+# pull_request_target で動くが、PR のコードは checkout も実行もしない（API でコメントと close だけ）。
+name: external-pr
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  close:
+    # フォークからの PR、または書き込みの権限がない人の PR（同じリポジトリの bot の PR は通す）
+    if: >-
+      github.event.pull_request.head.repo.full_name != github.repository
+      || (!contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association)
+          && github.event.pull_request.user.type != 'Bot')
+    runs-on: ubuntu-latest
+    steps:
+      - name: 案内して閉じる
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          HEAD: ${{ github.event.pull_request.head.repo.html_url }}/tree/${{ github.event.pull_request.head.ref }}
+        run: |
+          gh pr comment "$PR" --repo "$REPO" --body "ありがとうございます。このリポジトリは外からの Pull Request を受け付けていないため、この PR は閉じます（フォークのブランチ $HEAD はそのまま残ります）。
+
+          変更は、Issue のテンプレート「フォークでの変更のお知らせ」で知らせてください。こちらで読んで、取り込む場合はこちらのブランチで実装します。詳しくは [CONTRIBUTING.md](https://github.com/$REPO/blob/main/CONTRIBUTING.md)。
+
+          Thank you. This repository does not accept pull requests from outside contributors, so this PR will be closed (your branch stays as is). Please let us know about your change by opening an issue with the \"フォークでの変更のお知らせ\" (fork change) template. See CONTRIBUTING.md."
+          gh pr close "$PR" --repo "$REPO"

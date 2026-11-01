@@ -10,7 +10,7 @@
 | --- | --- |
 | `ts` | Node（LTS）、pnpm、Bun、TypeScript、Biome、Playwright（ブラウザー込み） |
 | `cloud` | wrangler、cloudflared、firebase-tools、JDK 21、Pulumi（Node） |
-| 共通 | git、gh、jq、yq、curl、just、sops、age、gitleaks、osv-scanner、sqlc、sqlite、runn、nixfmt、treefmt |
+| 共通 | git、gh、jq、yq、curl、just、sops、age、gitleaks、osv-scanner、sqlc、sqlite、spec-kit（specify）、runn、nixfmt、treefmt |
 
 ## 1. 立ち上げ
 
@@ -72,6 +72,7 @@ pre-commit のフック（整形と gitleaks）は、シェルに入ったとき
 | **treefmt、pre-commit、gitleaks** | 機械で守れる規律だけを規律にする。整形と秘密情報の混入はコミットの時点で止める | principles 3 |
 | **Playwright を Nix から** | E2E のブラウザーを Nix で固定する。npm の `@playwright/test` は `$PLAYWRIGHT_VERSION` に合わせる | 0023 |
 | **just** | よく使うコマンドを1か所に。AGENTS.md はここを指す | |
+| **Spec Kit** | 要求から分解までの下書きを作る道具。出口（Issue）はこちらの型に固定する（docs/spec-driven.md） | |
 
 版は `flake.lock` による。
 

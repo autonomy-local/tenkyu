@@ -1,0 +1,58 @@
+name: フォークでの変更のお知らせ
+description: フォークで直したものを知らせる（このリポジトリは外からの PR を受け付けません。CONTRIBUTING.md）
+title: "[フォーク] "
+labels: ["fork", "needs:decision"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        フォークで直したものを知らせてください。取り込むかどうかは、こちらで読んで Issue に返します。
+        取り込む場合は、こちらの Issue とブランチで実装します（リポジトリの CONTRIBUTING.md）。
+        **脆弱性は、ここに書かず SECURITY.md の窓口へ。**
+
+  - type: input
+    id: fork-ref
+    attributes:
+      label: フォークのブランチ（またはコミット）
+      description: 差分が見られるリンク。比較のページ（compare）が一番助かります
+      placeholder: "https://github.com/<あなた>/<リポジトリ>/compare/main...<ブランチ>"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: 何を、なぜ変えたか
+      description: 変更の前後と、変えた理由。関係する Issue があればリンク
+    validations:
+      required: true
+
+  - type: textarea
+    id: verified
+    attributes:
+      label: 確かめたこと
+      description: 動かしたテスト、コマンドと結果、試した環境
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 振る舞い（わかれば）
+      description: 変更後の振る舞いを「〜したとき、システムは〜する」の形で（docs/workflow.md の「終了条件の書き方」）。取り込むときの終了条件になります
+      placeholder: |
+        - 〜したとき、システムは〜する
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 提供の条件
+      description: 条件は CONTRIBUTING.md の「提供の条件」にあります
+      options:
+        - label: 変更は、CONTRIBUTING.md に書かれたライセンスで提供します
+          required: true
+        - label: 各コミットに Signed-off-by（DCO）を付けています
+        - label: 第三者のコードを含んでいない（含む場合は、出典とライセンスを「何を、なぜ変えたか」に書いた）
+          required: true

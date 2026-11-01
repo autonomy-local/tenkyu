@@ -4,6 +4,11 @@
   "description": "risk.yml の repo-rules。ここを変えると、レビューの関門そのものが変わる。critical のレビューの前に歩く。",
   "steps": [
     {
+      "file": "REVIEW.md",
+      "pattern": "^## 1\\. 指摘の重さ",
+      "description": "レビューの中身の基準。人・CodeRabbit・エージェントが同じ物差しで指摘し、同じ決まり文句で返す。**必須は起きる場面が書けるものだけ**。基準を緩める・指摘しないことを増やす変更は、却下の数を見てから。"
+    },
+    {
       "file": ".github/workflows/review.yml",
       "pattern": "pull_request_target",
       "description": "判定は pull_request_target で動き、**main の側**の設定とスクリプトを使う。PR の側のコードは checkout も実行もしない。ここを pull_request に変えると、PR が自分の判定を書き換えられるようになる。"

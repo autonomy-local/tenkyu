@@ -39,6 +39,11 @@
       "description": "レビューの段階と、それぞれで求めるもの。critical のレビューの仕方もここ。"
     },
     {
+      "file": "REVIEW.md",
+      "pattern": "^## 4\\. 指摘への返し方",
+      "description": "指摘への返し方。黙って流さない。必須は直す。却下・保留は決まり文句で返す。"
+    },
+    {
       "file": "docs/environment.md",
       "pattern": "^## 1\\. 立ち上げ",
       "description": "開発環境の立ち上げ。`nix develop` で全員が同じ版のツールを使う。"

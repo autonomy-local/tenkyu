@@ -1,6 +1,8 @@
 # CodeRabbit の設定（docs/review.md の「AI のレビュー」）。
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: ja-JP
+# 指摘の重さと書き方は REVIEW.md（正本）。250 字まで
+tone_instructions: "REVIEW.md の基準に従う。各指摘の先頭に[必須][推奨][範囲外]を付ける。必須は起きる場面（入力・状態と結果）を書けるものだけ。整形・lint が見るもの、規約に無い好み、決着済み ADR の蒸し返しは指摘しない。簡潔に。"
 reviews:
   profile: assertive
   # 指摘があれば「変更を求める」、片づけば承認する。review-gate は最新のコミットへの承認を見る
@@ -46,5 +48,11 @@ reviews:
 tools:
   gitleaks:
     enabled: true
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    # AGENTS.md・CLAUDE.md は自動で読む。レビューの基準を足す（文書のディレクトリに置くと効かないので、ルートに置く）
+    filePatterns:
+      - "REVIEW.md"
 chat:
   auto_reply: true

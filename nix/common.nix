@@ -17,6 +17,8 @@
     # SQL が正本（TS は sqlc-gen-ts-d1、Go は sqlc の Go 出力）
     sqlc
     sqlite
+    # 仕様駆動開発（Spec Kit の CLI、specify）
+    spec-kit
     # API のシナリオのテスト
     runn
     nixfmt
