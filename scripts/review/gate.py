@@ -17,15 +17,18 @@ import argparse
 import os
 import pathlib
 import sys
+import urllib.error
 from dataclasses import dataclass
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import risk  # noqa: E402
 
 AI_LOGINS = {"coderabbit": "coderabbitai[bot]"}
-# 公開リポジトリでは誰でもコメントできるので、チームが担当のときは関係者だけを数える。
-# 組織のメンバーシップが非公開の人は、GITHUB_TOKEN からは関係者に見えないことがある
+# 公開リポジトリでは誰でもコメントできるので、関係者のレビューだけを数える。
+# 組織のメンバーシップが非公開の人は、GITHUB_TOKEN からは author_association で関係者に見えないことがある。
+# そのときはリポジトリへの権限で確かめる（CODEOWNERS のログイン名を別の人が取得しても、権限がなければ数えない）
 TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
+WRITE = {"admin", "maintain", "write"}
 
 
 @dataclass
@@ -36,7 +39,7 @@ class Review:
     state: str  # APPROVED / COMMENTED / CHANGES_REQUESTED / DISMISSED
     body: str
     commit_id: str
-    trusted: bool = True  # author_association が関係者か
+    trusted: bool = True  # 関係者か（author_association、またはリポジトリへの権限）
 
 
 @dataclass
@@ -46,7 +49,7 @@ class LineComment:
     is_bot: bool
     path: str
     commit_id: str  # original_commit_id
-    trusted: bool = True  # author_association が関係者か
+    trusted: bool = True  # 関係者か（author_association、またはリポジトリへの権限）
 
 
 def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, codeowners, toured, author=None, escalated=False):
@@ -85,9 +88,9 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
     def can_review(user, f, trusted=True):
         """その人のレビューを、そのファイルの担当のものとして数えてよいかを返す。"""
         os_ = owners(f)
-        if not os_:
+        if not os_ or not trusted:
             return False
-        if user.lower() not in os_ and not (trusted and any("/" in o for o in os_)):
+        if user.lower() not in os_ and not any("/" in o for o in os_):
             return False  # チーム（org/team）が担当なら、bot 以外の関係者を数える
         if s.get("reviewer_must_have_toured"):
             areas = result.area_of(f)
@@ -135,6 +138,23 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
 
 # ── GitHub から集める ─────────────────────────────────────────
 
+def is_trusted(repo, item, cache):
+    """レビューの書き手が関係者かを返す。権限を確かめられないときは数えない。"""
+    import github as gh
+
+    if item["user"]["type"] == "Bot":
+        return False
+    if item.get("author_association") in TRUSTED:
+        return True
+    login = item["user"]["login"]
+    if login not in cache:
+        try:
+            cache[login] = gh.get(f"/repos/{repo}/collaborators/{login}/permission").get("permission") in WRITE
+        except urllib.error.HTTPError:
+            cache[login] = False
+    return cache[login]
+
+
 def collect(repo, number):
     """判定に要る PR の情報を GitHub から集める。関係者以外の人のレビューは落とす。"""
     import github as gh
@@ -144,15 +164,16 @@ def collect(repo, number):
     changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", ""), f.get("previous_filename", "")) for f in files]
     commits = [c["sha"] for c in gh.paged(f"/repos/{repo}/pulls/{number}/commits")]
     commit_files = {sha: [f["filename"] for f in gh.get(f"/repos/{repo}/commits/{sha}").get("files", [])] for sha in commits}
+    cache = {}
     reviews = [
         Review(r["user"]["login"], r["user"]["type"] == "Bot", r["state"], r.get("body") or "", r.get("commit_id") or "",
-               r.get("author_association") in TRUSTED)
+               is_trusted(repo, r, cache))
         for r in gh.paged(f"/repos/{repo}/pulls/{number}/reviews")
         if r.get("user")
     ]
     comments = [
         LineComment(c["user"]["login"], c["user"]["type"] == "Bot", c["path"], c.get("original_commit_id") or "",
-                    c.get("author_association") in TRUSTED)
+                    is_trusted(repo, c, cache))
         for c in gh.paged(f"/repos/{repo}/pulls/{number}/comments")
         if c.get("user")
     ]

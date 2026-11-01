@@ -5,6 +5,8 @@
 import pathlib
 import sys
 import unittest
+import urllib.error
+from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve()
 sys.path.insert(0, str(HERE.parents[1]))
@@ -138,10 +140,10 @@ class Gate(unittest.TestCase):
         r = [Review(AI, True, "APPROVED", "", "c2"), Review(ME, False, "COMMENTED", "ok", "c1")]
         self.assertTrue(run(files, r, [LineComment(ME, False, "db/x.sql", "c1")], commits=("c1", "c2"), commit_files=cf)[0])
 
-    def test_owner_counts_even_when_membership_is_private(self):
+    def test_reused_login_does_not_count(self):
         files = ["db/x.sql"]
         r = [Review(AI, True, "APPROVED", "", "c1"), Review(ME, False, "COMMENTED", "読んだ", "c1", trusted=False)]
-        self.assertTrue(run(files, r, [LineComment(ME, False, "db/x.sql", "c1", trusted=False)])[0])
+        self.assertFalse(run(files, r, [LineComment(ME, False, "db/x.sql", "c1", trusted=False)])[0])
 
     def test_team_owner_does_not_count_outsiders(self):
         owners = risk.parse_codeowners("* @org/team\n")
@@ -163,6 +165,59 @@ class Gate(unittest.TestCase):
         conf = {**CONF, "settings": {**CONF["settings"], "ai_reviewer": "none"}}
         self.assertFalse(run(["src/a.ts"], conf=conf)[0])
         self.assertTrue(run(["src/a.ts"], [Review(ME, False, "COMMENTED", "ok", "c1")], conf=conf)[0])
+
+
+def user(login, association, kind="User"):
+    return {"user": {"login": login, "type": kind}, "author_association": association}
+
+
+class Collect(unittest.TestCase):
+    def collect(self, reviews, comments, permissions):
+        def paged(path):
+            if path.endswith("/reviews"):
+                return [{**r, "state": "COMMENTED", "body": "読んだ", "commit_id": "c1"} for r in reviews]
+            if path.endswith("/comments"):
+                return [{**c, "path": "db/x.sql", "original_commit_id": "c1"} for c in comments]
+            return []
+
+        def get(path):
+            if path.endswith("/permission"):
+                login = path.split("/")[-2]
+                if login not in permissions:
+                    raise urllib.error.HTTPError(path, 404, "not found", None, None)
+                return {"permission": permissions[login]}
+            return {}
+
+        with mock.patch("github.paged", paged), mock.patch("github.get", get):
+            return gate.collect("o/r", 1)
+
+    def test_owner_counts_even_when_membership_is_private(self):
+        item = user(ME, "CONTRIBUTOR")
+        _, _, _, _, reviews, comments = self.collect([item], [item], {ME: "admin"})
+        self.assertTrue(reviews[0].trusted)
+        self.assertTrue(comments[0].trusted)
+
+    def test_member_needs_no_permission_lookup(self):
+        item = user(ME, "MEMBER")
+        _, _, _, _, reviews, comments = self.collect([item], [item], {})
+        self.assertTrue(reviews[0].trusted)
+        self.assertTrue(comments[0].trusted)
+
+    def test_account_without_write_is_not_trusted(self):
+        item = user(ME, "NONE")
+        _, _, _, _, reviews, comments = self.collect([item], [item], {ME: "read"})
+        self.assertFalse(reviews[0].trusted)
+        self.assertFalse(comments[0].trusted)
+
+    def test_unknown_permission_is_not_trusted(self):
+        item = user(ME, "NONE")
+        _, _, _, _, reviews, _ = self.collect([item], [], {})
+        self.assertFalse(reviews[0].trusted)
+
+    def test_bot_is_not_looked_up(self):
+        item = user(AI, "NONE", "Bot")
+        _, _, _, _, reviews, _ = self.collect([item], [], {})
+        self.assertFalse(reviews[0].trusted)
 
 
 if __name__ == "__main__":
