@@ -23,6 +23,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import risk  # noqa: E402
 
 AI_LOGINS = {"coderabbit": "coderabbitai[bot]"}
+# 公開リポジトリでは誰でもコメントできる。関係者以外の人のレビューは数えない
+TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 
 @dataclass
@@ -125,6 +127,12 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
 
 # ── GitHub から集める ─────────────────────────────────────────
 
+def counts(item):
+    """bot は残す（AI の承認を見るため。人としては evaluate() で数えない）。"""
+    u = item.get("user")
+    return bool(u) and (u["type"] == "Bot" or item.get("author_association") in TRUSTED)
+
+
 def collect(repo, number):
     import github as gh
 
@@ -136,12 +144,12 @@ def collect(repo, number):
     reviews = [
         Review(r["user"]["login"], r["user"]["type"] == "Bot", r["state"], r.get("body") or "", r.get("commit_id") or "")
         for r in gh.paged(f"/repos/{repo}/pulls/{number}/reviews")
-        if r.get("user")
+        if counts(r)
     ]
     comments = [
         LineComment(c["user"]["login"], c["user"]["type"] == "Bot", c["path"], c.get("original_commit_id") or "")
         for c in gh.paged(f"/repos/{repo}/pulls/{number}/comments")
-        if c.get("user")
+        if counts(c)
     ]
     return pr, changes, commits, commit_files, reviews, comments
 

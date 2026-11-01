@@ -4,7 +4,8 @@ language: ja-JP
 reviews:
   profile: assertive
   # 指摘があれば「変更を求める」、片づけば承認する。review-gate は最新のコミットへの承認を見る
-  request_changes_workflow: true
+  auto_approvals:
+    enabled: true
   high_level_summary: true
   review_status: true
   poem: false

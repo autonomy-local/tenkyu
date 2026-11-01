@@ -66,14 +66,14 @@ review-gate が success ＋ check が success → マージできる
 - 自分の PR は「承認」できないが、「コメント」のレビューは付けられる。一人で回している間はこれが印になる
 - 人のコメントは、**critical のファイルを最後に変えたコミット以降**のものだけを数える。レビューの後に critical のファイルを直したら、付け直す（critical でないファイルの修正なら、そのまま）
 - bot（Jules、CodeRabbit）のコメントは数えない
-- 担当は CODEOWNERS（最後に当たった行）。チーム（`@org/team`）が担当なら、bot 以外の人を数える
+- 担当は CODEOWNERS（最後に当たった行）。チーム（`@org/team`）が担当なら、bot 以外で、リポジトリや組織の関係者（OWNER、MEMBER、COLLABORATOR）を数える
 - `reviewer_must_have_toured: true` にすると、その領域のツアーを済ませた人（`.github/settings/ownership.yml`）のコメントだけを数える
 
 ## AI のレビュー（CodeRabbit）
 
 `settings.ai_reviewer: coderabbit`。設定は [`.coderabbit.yaml`](../.coderabbit.yaml)。
 
-- `request_changes_workflow: true`：指摘があれば「変更を求める」、片づけば CodeRabbit が承認する。関門は**最新のコミットへの承認**を見る
+- `auto_approvals.enabled: true`：指摘があれば「変更を求める」、片づけば CodeRabbit が承認する。関門は**最新のコミットへの承認**を見る
 - **公開リポジトリ**：無償で回る。ただし小さな OSS では、既定だと頼まないと回らないことがある
   - まず `.coderabbit.yaml` の `auto_review.enabled: true` で回るかを確かめる
   - 回らなければ `settings.ai_request_comment: true` にする（PR を開いたときに `@coderabbitai review` とコメントする）。**bot のコメントに CodeRabbit が反応するかは未確認**。反応しなければ人が書く
