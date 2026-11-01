@@ -72,6 +72,10 @@ class Classify(unittest.TestCase):
         f = F("docs/a.md", status="renamed", previous_filename="src/a.test.ts", deletions=5)
         self.assertEqual(tier(f), "standard")
 
+    def test_rename_out_of_tests_raises(self):
+        f = F("docs/a.md", status="renamed", previous_filename="src/a.test.ts")
+        self.assertEqual(tier(f), "standard")
+
     def test_pr_template_is_critical(self):
         self.assertEqual(tier(".github/PULL_REQUEST_TEMPLATE.md"), "critical")
 

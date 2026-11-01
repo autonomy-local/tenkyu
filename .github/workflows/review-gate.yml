@@ -11,9 +11,10 @@ permissions:
   pull-requests: read
   statuses: write
 
-# review.yml と同じグループ。review-gate の書き込みを直列にする（取り消すと判定が残らない）
+# review.yml と同じグループ。PR ごとに review-gate の書き込みを直列にする。
+# 待機中の実行が置き換わっても、最後の実行が最新の状態を読むので判定は残る
 concurrency:
-  group: review-gate-${{ github.event.workflow_run.head_sha }}
+  group: review-gate-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_sha }}
   cancel-in-progress: false
 
 jobs:

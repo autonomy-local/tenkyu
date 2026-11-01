@@ -132,7 +132,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
         tsp = spec(tests[0]["paths"]) if tests else None
         if tsp:
             gone = [c.filename for c in changes if any(tsp.match_file(p) for p in c.paths)
-                    and (c.status == "removed" or c.deletions > c.additions)]
+                    and (c.status == "removed" or c.deletions > c.additions or not tsp.match_file(c.filename))]
             if gone:
                 res.tier = bump(res.tier, sig["test_removed"].get("bump", 1)) if res.tier != "light" else "standard"
                 res.reasons.append(f"テストの削除・減少：{', '.join('`'+g+'`' for g in gone)}")
