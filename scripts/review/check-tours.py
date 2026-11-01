@@ -17,11 +17,13 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def tracked():
+    """git が追跡しているファイルの一覧を返す。"""
     out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, check=True).stdout
     return [p for p in out.decode().split("\0") if p]
 
 
 def main():
+    """ツアーを検査し、問題があれば表示して終了コード 1 を返す。"""
     conf = risk.load(ROOT / ".github/settings/risk.yml")
     files = tracked()
     errors = []

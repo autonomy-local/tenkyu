@@ -20,6 +20,7 @@ LABELS = {t: f"review:{t}" for t in risk.TIERS}
 
 
 def render(result, conf, codeowners):
+    """PR に付けるコメントの本文を作る。"""
     s = conf.get("settings", {})
     need = {
         "light": "レビュー不要" + ("（自動マージ）" if s.get("auto_merge_light") else ""),
@@ -44,6 +45,7 @@ def render(result, conf, codeowners):
 
 
 def main():
+    """段階を判定し、ラベル、コメント、自動マージを更新する。`--files` なら表示だけ。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--pr", type=int)
     ap.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY"))

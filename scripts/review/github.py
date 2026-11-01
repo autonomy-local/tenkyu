@@ -9,6 +9,7 @@ API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 
 
 def _req(method, path, body=None):
+    """API を呼び、(本文の JSON, ヘッダー) を返す。"""
     url = path if path.startswith("http") else f"{API}{path}"
     data = json.dumps(body).encode() if body is not None else None
     r = urllib.request.Request(url, data=data, method=method)
@@ -23,10 +24,12 @@ def _req(method, path, body=None):
 
 
 def get(path):
+    """GET して本文を返す。"""
     return _req("GET", path)[0]
 
 
 def paged(path):
+    """GET を Link ヘッダーの続きまでたどり、全件を返す。"""
     out, url = [], f"{API}{path}{'&' if '?' in path else '?'}per_page=100"
     while url:
         data, h = _req("GET", url)
@@ -37,14 +40,17 @@ def paged(path):
 
 
 def post(path, body):
+    """POST して本文を返す。"""
     return _req("POST", path, body)[0]
 
 
 def patch(path, body):
+    """PATCH して本文を返す。"""
     return _req("PATCH", path, body)[0]
 
 
 def delete(path):
+    """DELETE して本文を返す。すでに無いとき（404）は無視する。"""
     try:
         return _req("DELETE", path)[0]
     except urllib.error.HTTPError as e:

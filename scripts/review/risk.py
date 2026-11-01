@@ -14,19 +14,23 @@ TIERS = ["light", "standard", "critical"]
 
 
 def rank(tier: str) -> int:
+    """段階の重さを数で返す（大きいほど重い）。"""
     return TIERS.index(tier)
 
 
 def bump(tier: str, n: int = 1) -> str:
+    """段階を n 段上げる。critical で止まる。"""
     return TIERS[min(rank(tier) + n, len(TIERS) - 1)]
 
 
 def spec(patterns):
+    """.gitignore と同じ書き方のパターンを照合器にする。"""
     return pathspec.GitIgnoreSpec.from_lines(patterns)
 
 
 @dataclass
 class FileChange:
+    """PR で変わったファイル1つ。"""
     filename: str
     status: str = "modified"  # added / removed / modified / renamed
     additions: int = 0
@@ -37,16 +41,19 @@ class FileChange:
 
 @dataclass
 class Result:
+    """判定の結果。"""
     tier: str
     files: dict = field(default_factory=dict)  # filename -> (tier, [area ids])
     reasons: list = field(default_factory=list)
     critical_files: list = field(default_factory=list)
 
     def area_of(self, filename):
+        """ファイルが当たった領域の id を返す。"""
         return self.files.get(filename, ("standard", []))[1]
 
 
 def load(path):
+    """YAML の設定を読む。"""
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -65,6 +72,7 @@ def adr_impact(body: str) -> str | None:
 
 
 def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
+    """変更の一覧と PR の本文から段階を決める。シグナルは上げるだけで、下げない。"""
     s = conf.get("settings", {})
     default = s.get("default", "standard")
     areas = [(a, spec(a["paths"])) for a in conf.get("areas", [])]
@@ -90,6 +98,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
     sig = conf.get("signals", {})
 
     def raise_to(t, why):
+        """段階を t まで上げ、理由を残す。"""
         if rank(t) > rank(res.tier):
             res.tier = t
         res.reasons.append(why)
@@ -141,6 +150,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
 # ── CODEOWNERS ──────────────────────────────────────────────
 
 def parse_codeowners(text: str):
+    """CODEOWNERS を (照合器, 担当) の一覧にする。"""
     rules = []
     for line in text.splitlines():
         line = line.split("#", 1)[0].strip()

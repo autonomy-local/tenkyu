@@ -16,11 +16,13 @@ STATE = re.compile(r"^- 状態:\s*(.+)$", re.M)
 
 
 def state_of(path):
+    """文書の「状態」の行を返す。"""
     m = STATE.search(path.read_text(encoding="utf-8"))
     return m.group(1).strip() if m else "（状態の行がない）"
 
 
 def check(conf):
+    """着手の条件を確かめ、(全部そろったか, 項目ごとの行) を返す。"""
     rows, ok_all = [], True
     for r in conf["required"]:
         files = sorted(glob.glob(str(ROOT / r["path"])))
@@ -37,12 +39,14 @@ def check(conf):
 
 
 def changed_since(base):
+    """base からの差分のファイルの一覧を返す。"""
     out = subprocess.run(["git", "diff", "--name-only", "-z", f"{base}...HEAD"],
                          cwd=ROOT, check=True, capture_output=True).stdout
     return [p for p in out.decode("utf-8").split("\0") if p]
 
 
 def main():
+    """着手の条件を表示し、終了コードを返す。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--base")
     ap.add_argument("--strict", action="store_true")
@@ -62,6 +66,7 @@ def main():
     if a.base:
         allowed = conf["allowed_before_ready"]
         def is_allowed(p):
+            """そのパスが、そろう前に変えてよいものかを返す。"""
             return any(p == x or (x.endswith("/") and p.startswith(x)) for x in allowed)
         bad = [p for p in changed_since(a.base) if not is_allowed(p)]
         if bad:

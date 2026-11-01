@@ -29,6 +29,7 @@ TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 @dataclass
 class Review:
+    """PR のレビュー1件。"""
     user: str
     is_bot: bool
     state: str  # APPROVED / COMMENTED / CHANGES_REQUESTED / DISMISSED
@@ -38,6 +39,7 @@ class Review:
 
 @dataclass
 class LineComment:
+    """PR の行コメント1件。"""
     user: str
     is_bot: bool
     path: str
@@ -70,12 +72,15 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
             cutoff = i
 
     def fresh(commit_id):
+        """そのコミットが、最後に critical のファイルを変えたコミット以降かを返す。"""
         return commit_id in pos and pos[commit_id] >= cutoff
 
     def owners(f):
+        """ファイルの担当（CODEOWNERS）を返す。"""
         return risk.owners_of(codeowners, f)
 
     def can_review(user, f):
+        """その人のレビューを、そのファイルの担当のものとして数えてよいかを返す。"""
         os_ = owners(f)
         if not os_:
             return False
@@ -134,6 +139,7 @@ def counts(item):
 
 
 def collect(repo, number):
+    """判定に要る PR の情報を GitHub から集める。関係者以外の人のレビューは落とす。"""
     import github as gh
 
     pr = gh.get(f"/repos/{repo}/pulls/{number}")
@@ -155,6 +161,7 @@ def collect(repo, number):
 
 
 def main():
+    """判定を実行し、コミットのステータス `review-gate` を付ける。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--pr", type=int, required=True)
     ap.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY"))
