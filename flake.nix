@@ -34,9 +34,7 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      forAll =
-        f:
-        nixpkgs.lib.genAttrs systems (system: f (import nixpkgs { inherit system; }));
+      forAll = f: nixpkgs.lib.genAttrs systems (system: f (import nixpkgs { inherit system; }));
 
       has = s: builtins.elem s stacks;
       treefmtOf = pkgs: treefmt-nix.lib.evalModule pkgs (import ./nix/treefmt.nix { inherit has; });

@@ -60,10 +60,6 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - name: TEMP lock
-        run: |
-          nix flake lock
-          echo LOCKSTART; base64 -w0 flake.lock; echo; echo LOCKEND
       - name: nix flake check
         run: nix flake check --print-build-logs
       - name: 既定の devShell が立ち上がる
