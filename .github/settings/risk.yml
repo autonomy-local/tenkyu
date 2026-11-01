@@ -10,7 +10,7 @@ settings:
   # standard の AI レビュー：coderabbit | none（none なら CODEOWNER の総括コメントで代える）
   ai_reviewer: coderabbit
   # PR を開いたときに「@coderabbitai review」とコメントして頼む（自動で回らない場合の保険。docs/review.md）
-  ai_request_comment: false
+  ai_request_comment: true
   # critical：CODEOWNER が、当たった各ファイルに行へのコメントを1つ以上付けることを求める
   require_line_comment_per_file: true
   # critical：レビューする人が、その領域のツアーを済ませていること（.github/settings/ownership.yml）
