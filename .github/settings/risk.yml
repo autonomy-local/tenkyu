@@ -55,8 +55,13 @@ areas:
   - id: repo-rules
     tier: critical
     reason: リポジトリの規律そのもの（CI、ルール、レビューの判定、エージェントへの規約）
-    paths: [".github/workflows/**", ".github/settings/**", ".github/CODEOWNERS", ".github/PULL_REQUEST_TEMPLATE.md", ".gemini/**", "scripts/review/**", "scripts/check-kickoff.py", "scripts/bootstrap-repo.sh", "AGENTS.md", "CLAUDE.md", ".coderabbit.yaml", "flake.nix", "nix/**"]
+    paths: [".github/workflows/**", ".github/settings/**", ".github/CODEOWNERS", ".github/PULL_REQUEST_TEMPLATE.md", ".gemini/**", "scripts/review/**", "scripts/check-kickoff.py", "scripts/bootstrap-repo.sh", "AGENTS.md", "CLAUDE.md", "REVIEW.md", "CONTRIBUTING.md", ".coderabbit.yaml", "flake.nix", "nix/**"]
     tour: .tours/repo-rules.tour
+  - id: specs
+    tier: critical
+    reason: 機能の要求（Spec Kit の spec・plan・tasks）と constitution。Issue の元になる
+    paths: ["specs/**", ".specify/**"]
+    tour: none
   - id: decisions
     tier: critical
     reason: 決定（ADR）と要求（PRD）。状態の書き換えは人が行う

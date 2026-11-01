@@ -17,6 +17,11 @@ allowed_before_ready:
   - ARCHITECTURE.md
   - .tours/
   - .coderabbit.yaml
+  - REVIEW.md
+  # 要求を書く作業（Spec Kit）
+  - specs/
+  - .specify/
+  - .claude/
   # 着手の条件を確かめるスクリプトと、設定の反映
   - scripts/
   # 開発環境（スタックを外す作業は着手の前にやる）

@@ -109,4 +109,6 @@ PY
   done </tmp/kickoff.tsv
 fi
 
-echo "完了。Jules を使う場合は、Jules の GitHub アプリにこのリポジトリへのアクセスを与えてください。"
+echo "完了。"
+echo "手で設定するもの：Settings → General → Features → Pull requests を Collaborators only（外からの PR を止める。CONTRIBUTING.md）"
+echo "Jules を使う場合は、Jules の GitHub アプリにこのリポジトリへのアクセスを与えてください。"

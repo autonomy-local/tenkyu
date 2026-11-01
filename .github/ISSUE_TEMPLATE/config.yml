@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: 貢献のしかた（外からの PR は受け付けません）
+    url: https://github.com/autonomy-local/tenkyu/blob/main/CONTRIBUTING.md
+    about: フォークで直し、Issue「フォークでの変更のお知らせ」で知らせてください
+  - name: 脆弱性の報告
+    url: https://github.com/autonomy-local/tenkyu/security/policy
+    about: 脆弱性は Issue に書かず、SECURITY.md の窓口に報告してください

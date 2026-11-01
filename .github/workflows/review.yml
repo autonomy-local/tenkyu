@@ -17,8 +17,10 @@ permissions:
 jobs:
   impact:
     # 自分が付け替える review:* のラベルでは、もう一度は回さない
+    # 外からの PR は external-pr が閉じるので、判定しない
     if: >-
-      !((github.event.action == 'labeled' || github.event.action == 'unlabeled')
+      github.event.pull_request.head.repo.full_name == github.repository
+      && !((github.event.action == 'labeled' || github.event.action == 'unlabeled')
         && startsWith(github.event.label.name, 'review:')
         && github.event.label.name != 'review:escalate')
     # review-gate.yml と同じグループ。飛ばされる review:* のイベントが待機中の判定を置き換えないように、job に置く

@@ -32,6 +32,9 @@ jobs:
       - name: レビューの判定のテスト
         run: python3 -m unittest discover -s scripts/review/tests
 
+      - name: Spec Kit から Issue への変換のテスト
+        run: python3 -m unittest discover -s scripts/spec/tests
+
       - name: コードツアー（critical の領域にツアーがあり、順路が今のコードを指している）
         run: python3 scripts/review/check-tours.py
 

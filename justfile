@@ -11,6 +11,7 @@ fmt:
 check:
     python3 scripts/check-kickoff.py
     python3 -m unittest discover -s scripts/review/tests
+    python3 -m unittest discover -s scripts/spec/tests
     python3 scripts/review/check-tours.py
     nix flake check
 
@@ -22,6 +23,14 @@ impact +files:
 review-test:
     python3 -m unittest discover -s scripts/review/tests
     python3 scripts/review/check-tours.py
+
+# Spec Kit の tasks.md から起こす Issue を確かめる（例：just spec-issues specs/001-login）
+spec-issues dir:
+    python3 scripts/spec/spec_to_issues.py {{dir}}
+
+# 同じく、Issue を作る（同じ印の Issue があれば作らない）
+spec-issues-apply dir:
+    python3 scripts/spec/spec_to_issues.py {{dir}} --apply
 
 # Pulumi：preview（例：just infra-preview cloudflare dev）
 infra-preview target stack:

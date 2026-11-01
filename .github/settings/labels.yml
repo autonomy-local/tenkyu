@@ -36,6 +36,23 @@
   color: "000000"
   description: ほかの Issue や外部の事情で止まっている
 
+# 出どころ
+- name: spec
+  color: "c5def5"
+  description: Spec Kit の tasks.md から起こした Issue（scripts/spec/spec_to_issues.py）
+
+- name: fork
+  color: "d4c5f9"
+  description: フォークでの変更のお知らせ（取り込むかは人が決める）
+
+# 依存（本文の「前提となる Issue」と合わせる）
+- name: deps:none
+  color: "c2e0c6"
+  description: 前提がそろっている。ほかの Issue と並べて着手してよい
+- name: deps:waiting
+  color: "d4c5f9"
+  description: 前提となる Issue（または着手の条件）待ち。前提が閉じたら deps:none に付け替える
+
 # エージェントへの割り当て
 - name: jules
   color: "4285f4"

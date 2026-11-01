@@ -39,9 +39,9 @@ body:
     id: done-criteria
     attributes:
       label: 終了条件
-      description: 直ったと判定できる条件（再現の手順で期待した結果になる、テスト名など）
+      description: 直ったと判定できる条件。EARS の型（docs/workflow.md の「終了条件の書き方」）で書き、判定の手段（テスト名など）を添えます
       placeholder: |
-        - [ ] 再現の手順で「期待したこと」になる
-        - [ ] 再現するテストが追加されている
+        - [ ] 〈再現の手順〉をしたとき、システムは〈期待したこと〉をする（追加したテスト名）
+        - [ ] 〈起きたこと〉の場合は、システムは〈止め方・知らせ方〉をする
     validations:
       required: true
