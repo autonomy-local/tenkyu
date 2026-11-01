@@ -23,7 +23,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import risk  # noqa: E402
 
 AI_LOGINS = {"coderabbit": "coderabbitai[bot]"}
-# 公開リポジトリでは誰でもコメントできる。関係者以外の人のレビューは数えない
+# 公開リポジトリでは誰でもコメントできるので、チームが担当のときは関係者だけを数える。
+# 組織のメンバーシップが非公開の人は、GITHUB_TOKEN からは関係者に見えないことがある
 TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 
@@ -35,6 +36,7 @@ class Review:
     state: str  # APPROVED / COMMENTED / CHANGES_REQUESTED / DISMISSED
     body: str
     commit_id: str
+    trusted: bool = True  # author_association が関係者か
 
 
 @dataclass
@@ -44,6 +46,7 @@ class LineComment:
     is_bot: bool
     path: str
     commit_id: str  # original_commit_id
+    trusted: bool = True  # author_association が関係者か
 
 
 def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, codeowners, toured, author=None, escalated=False):
@@ -79,13 +82,13 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
         """ファイルの担当（CODEOWNERS）を返す。"""
         return risk.owners_of(codeowners, f)
 
-    def can_review(user, f):
+    def can_review(user, f, trusted=True):
         """その人のレビューを、そのファイルの担当のものとして数えてよいかを返す。"""
         os_ = owners(f)
         if not os_:
             return False
-        if user.lower() not in os_ and not any("/" in o for o in os_):
-            return False  # チーム（org/team）が担当なら、bot 以外の人を数える
+        if user.lower() not in os_ and not (trusted and any("/" in o for o in os_)):
+            return False  # チーム（org/team）が担当なら、bot 以外の関係者を数える
         if s.get("reviewer_must_have_toured"):
             areas = result.area_of(f)
             people = {p["login"].lower() for a in areas for p in (toured.get(a) or [])}
@@ -96,7 +99,7 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
     targets = crit or list(result.files)
     summary_ok = any(
         not r.is_bot and r.body.strip() and r.state in ("COMMENTED", "APPROVED") and fresh(r.commit_id)
-        and any(can_review(r.user, f) for f in targets)
+        and any(can_review(r.user, f, r.trusted) for f in targets)
         for r in reviews
     )
 
@@ -124,19 +127,13 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
                 lines.append(f"✗ `{f}`：CODEOWNERS に担当がいない")
                 ok = False
                 continue
-            hit = any(not c.is_bot and c.path == f and fresh(c.commit_id) and can_review(c.user, f) for c in comments)
+            hit = any(not c.is_bot and c.path == f and fresh(c.commit_id) and can_review(c.user, f, c.trusted) for c in comments)
             lines.append(("✓" if hit else "✗") + f" `{f}` に CODEOWNER の行コメント")
             ok &= hit
     return ok, lines
 
 
 # ── GitHub から集める ─────────────────────────────────────────
-
-def counts(item):
-    """bot は残す（AI の承認を見るため。人としては evaluate() で数えない）。"""
-    u = item.get("user")
-    return bool(u) and (u["type"] == "Bot" or item.get("author_association") in TRUSTED)
-
 
 def collect(repo, number):
     """判定に要る PR の情報を GitHub から集める。関係者以外の人のレビューは落とす。"""
@@ -148,14 +145,16 @@ def collect(repo, number):
     commits = [c["sha"] for c in gh.paged(f"/repos/{repo}/pulls/{number}/commits")]
     commit_files = {sha: [f["filename"] for f in gh.get(f"/repos/{repo}/commits/{sha}").get("files", [])] for sha in commits}
     reviews = [
-        Review(r["user"]["login"], r["user"]["type"] == "Bot", r["state"], r.get("body") or "", r.get("commit_id") or "")
+        Review(r["user"]["login"], r["user"]["type"] == "Bot", r["state"], r.get("body") or "", r.get("commit_id") or "",
+               r.get("author_association") in TRUSTED)
         for r in gh.paged(f"/repos/{repo}/pulls/{number}/reviews")
-        if counts(r)
+        if r.get("user")
     ]
     comments = [
-        LineComment(c["user"]["login"], c["user"]["type"] == "Bot", c["path"], c.get("original_commit_id") or "")
+        LineComment(c["user"]["login"], c["user"]["type"] == "Bot", c["path"], c.get("original_commit_id") or "",
+                    c.get("author_association") in TRUSTED)
         for c in gh.paged(f"/repos/{repo}/pulls/{number}/comments")
-        if counts(c)
+        if c.get("user")
     ]
     return pr, changes, commits, commit_files, reviews, comments
 

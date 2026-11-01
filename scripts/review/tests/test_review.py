@@ -138,11 +138,23 @@ class Gate(unittest.TestCase):
         r = [Review(AI, True, "APPROVED", "", "c2"), Review(ME, False, "COMMENTED", "ok", "c1")]
         self.assertTrue(run(files, r, [LineComment(ME, False, "db/x.sql", "c1")], commits=("c1", "c2"), commit_files=cf)[0])
 
-    def test_outside_commenter_is_not_counted(self):
-        out = {"user": {"type": "User"}, "author_association": "NONE"}
-        self.assertFalse(gate.counts(out))
-        self.assertTrue(gate.counts({"user": {"type": "User"}, "author_association": "COLLABORATOR"}))
-        self.assertTrue(gate.counts({"user": {"type": "Bot"}, "author_association": "NONE"}))
+    def test_owner_counts_even_when_membership_is_private(self):
+        files = ["db/x.sql"]
+        r = [Review(AI, True, "APPROVED", "", "c1"), Review(ME, False, "COMMENTED", "読んだ", "c1", trusted=False)]
+        self.assertTrue(run(files, r, [LineComment(ME, False, "db/x.sql", "c1", trusted=False)])[0])
+
+    def test_team_owner_does_not_count_outsiders(self):
+        owners = risk.parse_codeowners("* @org/team\n")
+        res = risk.classify(CONF, [F("src/a.ts")])
+        conf = {**CONF, "settings": {**CONF["settings"], "ai_reviewer": "none"}}
+
+        def ok(trusted):
+            review = Review("eve", False, "COMMENTED", "読んだ", "c1", trusted=trusted)
+            return gate.evaluate(conf, res, head="c1", commits=["c1"], commit_files={"c1": ["src/a.ts"]},
+                                 reviews=[review], comments=[], codeowners=owners, toured={})[0]
+
+        self.assertFalse(ok(False))
+        self.assertTrue(ok(True))
 
     def test_escalate_label_makes_docs_critical(self):
         self.assertFalse(run(["docs/a.md"], escalated=True)[0])
