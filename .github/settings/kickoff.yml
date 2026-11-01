@@ -1,0 +1,62 @@
+# 着手の条件の正本。scripts/check-kickoff.py が CI で確かめ、
+# scripts/bootstrap-repo.sh --kickoff-issues が Issue を起こす。
+# 中身の説明は docs/kickoff.md。
+
+# 条件がそろうまでに main に入れてよい変更（これ以外を含む PR は CI の check で落ちる）
+allowed_before_ready:
+  - docs/
+  - .github/
+  - .gemini/
+  - README.md
+  - AGENTS.md
+  - CLAUDE.md
+  - SECURITY.md
+  - CONTRIBUTING.md
+  - LICENSE
+  - NOTICE
+  # 着手の条件を確かめるスクリプトと、設定の反映
+  - scripts/
+  # 開発環境（スタックを外す作業は着手の前にやる）
+  - flake.nix
+  - flake.lock
+  - nix/
+  - .envrc
+  - justfile
+  - .gitignore
+  - .editorconfig
+  - .gitattributes
+
+# そろえるもの。path は glob。状態の行（「- 状態: 」）が states のどれかで始まれば満たす
+required:
+  - id: prd
+    title: PRD を書いて承認する
+    path: docs/prd/0001-*.md
+    states: [承認, 改訂]
+  - id: adr-0001
+    title: ADR 0001 セキュリティと扱うデータ
+    path: docs/decisions/0001-*.md
+    states: [採用]
+  - id: adr-0002
+    title: ADR 0002 認証と認可
+    path: docs/decisions/0002-*.md
+    states: [採用]
+  - id: adr-0003
+    title: ADR 0003 リポジトリ・秘密情報・デプロイ
+    path: docs/decisions/0003-*.md
+    states: [採用]
+  - id: adr-0004
+    title: ADR 0004 可観測性と運用の初手
+    path: docs/decisions/0004-*.md
+    states: [採用]
+  - id: adr-0005
+    title: ADR 0005 ライセンス
+    path: docs/decisions/0005-*.md
+    states: [採用]
+  - id: adr-0006
+    title: ADR 0006 データの出口と削除
+    path: docs/decisions/0006-*.md
+    states: [採用]
+  - id: adr-0007
+    title: ADR 0007 言語・ランタイムとテストの方針
+    path: docs/decisions/0007-*.md
+    states: [採用]

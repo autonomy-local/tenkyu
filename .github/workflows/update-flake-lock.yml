@@ -1,0 +1,28 @@
+# flake.lock を週1回上げる PR を出す（「最新」を保ちながら、版は flake.lock で固定）。
+# PR の CI（nix ジョブ）が通ったらマージする。
+name: flake.lock の更新
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 21 * * 0" # 月曜 06:17（日本時間）
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - uses: DeterminateSystems/update-flake-lock@main
+        with:
+          branch: chore/update-flake-lock
+          pr-title: "chore: flake.lock を更新"
+          pr-labels: chore
+          commit-msg: "chore: flake.lock を更新"

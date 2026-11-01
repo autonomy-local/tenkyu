@@ -1,0 +1,47 @@
+name: 不具合
+description: 期待と違う動きを報告する
+title: "[不具合] "
+labels: ["fix"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 起きたこと
+      description: 何をしたら、何が起きたか
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待したこと
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 再現の手順
+      description: 手順、入力、環境（ブラウザ、OS、バージョン）。再現できない場合はそう書きます
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・画面
+      description: 秘密情報と個人情報は消してから貼ってください
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: done-criteria
+    attributes:
+      label: 終了条件
+      description: 直ったと判定できる条件（再現の手順で期待した結果になる、テスト名など）
+      placeholder: |
+        - [ ] 再現の手順で「期待したこと」になる
+        - [ ] 再現するテストが追加されている
+    validations:
+      required: true
