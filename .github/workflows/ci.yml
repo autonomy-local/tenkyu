@@ -27,11 +27,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install --quiet pyyaml
+      - run: pip install --quiet pyyaml pathspec
+
+      - name: レビューの判定のテスト
+        run: python3 -m unittest discover -s scripts/review/tests
+
+      - name: コードツアー（critical の領域にツアーがあり、順路が今のコードを指している）
+        run: python3 scripts/review/check-tours.py
 
       - name: Issue・PR のテンプレートとラベルの YAML が読める
         run: |
-          for f in .github/ISSUE_TEMPLATE/*.yml .github/settings/labels.yml .github/settings/kickoff.yml; do
+          for f in .github/ISSUE_TEMPLATE/*.yml .github/settings/labels.yml .github/settings/kickoff.yml .github/settings/risk.yml .github/settings/ownership.yml .coderabbit.yaml; do
             python3 -c "import sys,yaml; yaml.safe_load(open(sys.argv[1]))" "$f"
           done
           python3 -m json.tool .github/settings/ruleset-main.json > /dev/null

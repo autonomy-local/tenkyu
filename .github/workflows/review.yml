@@ -1,0 +1,47 @@
+# 影響範囲の判定とレビューの関門（docs/review.md）。
+#
+# pull_request_target で動かし、判定の設定とスクリプトは main の側（base）を使う。
+# PR の側のコードは checkout も実行もしない（変更の一覧は API から読む）。PR が自分の判定を書き換えられないように。
+name: review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, edited]
+
+permissions:
+  contents: write # 自動マージ
+  pull-requests: write # ラベル、コメント、自動マージ
+  issues: write # ラベル
+  statuses: write # review-gate
+
+jobs:
+  impact:
+    # 自分が付け替える review:* のラベルでは、もう一度は回さない
+    if: >-
+      !((github.event.action == 'labeled' || github.event.action == 'unlabeled')
+        && startsWith(github.event.label.name, 'review:')
+        && github.event.label.name != 'review:escalate')
+    # review-gate.yml と同じグループ。飛ばされる review:* のイベントが待機中の判定を置き換えないように、job に置く
+    concurrency:
+      group: review-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pyyaml pathspec
+      - name: 影響範囲（ラベル、コメント、自動マージ）
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_ACTION: ${{ github.event.action }}
+        run: python3 scripts/review/impact.py --pr ${{ github.event.pull_request.number }}
+      - name: review-gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/review/gate.py --pr ${{ github.event.pull_request.number }}

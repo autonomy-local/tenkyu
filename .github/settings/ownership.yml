@@ -1,0 +1,7 @@
+# 領域（risk.yml の areas の id）ごとに、ツアーを済ませた人（GitHub の login）と日付。
+# settings.reviewer_must_have_toured が true のとき、critical のレビューはここに載った人だけが数えられる。
+# ツアーのセッションのあとに更新する（docs/code-tour.md）。
+toured: {}
+#  authn:
+#    - login: yamashita-kenngo
+#      date: 2026-11-01

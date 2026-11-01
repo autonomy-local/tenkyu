@@ -1,0 +1,17 @@
+# レビューとコメントが付いたことを、review-gate（main の側で動く）に知らせるだけの workflow。
+# ここでは何もしない（PR の側の workflow なので、判定をここに置かない）。
+name: review-events
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "レビューの変更を review-gate に知らせる"

@@ -9,8 +9,9 @@ Issue を書く（テンプレート「タスク」）
        ├ Claude に渡す  → Claude がブランチでコミット → 人が push して PR
        └ 人がやる
   └ 判断が要る点があれば needs:decision（推測で進めない）
-PR（テンプレートどおり、終了条件ごとの根拠を書く）
-  └ CI の check が通る → 人がレビュー → squash マージ → ブランチは自動で削除
+PR（テンプレートどおり、終了条件ごとの根拠と影響範囲の見立てを書く）
+  └ CI（review）が段階を判定：critical / standard / light（docs/review.md）
+  └ check と review-gate が通る → squash マージ（light は自動） → ブランチは自動で削除
 ```
 
 ## ラベル

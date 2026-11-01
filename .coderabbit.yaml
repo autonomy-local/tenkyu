@@ -1,0 +1,50 @@
+# CodeRabbit の設定（docs/review.md の「AI のレビュー」）。
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ja-JP
+reviews:
+  profile: assertive
+  # 指摘があれば「変更を求める」、片づけば承認する。review-gate は最新のコミットへの承認を見る
+  auto_approvals:
+    enabled: true
+  high_level_summary: true
+  review_status: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/package-lock.json"
+    - "!**/pnpm-lock.yaml"
+    - "!flake.lock"
+    - "!**/*.lock"
+  # critical の領域（.github/settings/risk.yml）で見てほしい観点
+  path_instructions:
+    - path: "**/{auth,authn,authz,session}/**"
+      instructions: |
+        認証と認可。権限の判定の抜け、テナントの境界をまたぐ読み書き、セッションの扱い（期限、失効）、
+        エラーの文面から存在が分かる情報漏れを見る。ADR 0002 と .tours/authn.tour に照らす。
+    - path: "**/{migrations,migration}/**"
+      instructions: |
+        マイグレーション。戻せるか、既存のデータで失敗しないか、ロックの長さ、
+        アプリの新旧の版が同時に動く間に壊れないかを見る。
+    - path: "**/*.sql"
+      instructions: |
+        SQL。削除済みのレコードの除外、テナントの条件、インデックス、N+1 を見る。
+    - path: "**/*{delete,erase,purge,retention}*"
+      instructions: |
+        削除と消去。物理削除と論理削除の取り違え、バックアップを含む消える期限、取り消せないことの確認を見る。ADR 0006 に照らす。
+    - path: "infra/**"
+      instructions: |
+        Pulumi。資源の作り直し（replace）になる変更、公開の設定、権限の広げすぎ、費用が増える変更を見る。
+    - path: ".github/workflows/**"
+      instructions: |
+        workflow。permissions の広げすぎ、pull_request_target での PR のコードの checkout と実行、
+        secrets のログへの出力、アクションの版の固定を見る。
+    - path: "{.github/settings/**,scripts/review/**,AGENTS.md,CLAUDE.md}"
+      instructions: |
+        リポジトリの規律。レビューの関門を弱める変更（段階を下げる、条件を外す、判定を PR の側で動かす）がないかを見る。
+tools:
+  gitleaks:
+    enabled: true
+chat:
+  auto_reply: true
