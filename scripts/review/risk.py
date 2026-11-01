@@ -39,6 +39,12 @@ class FileChange:
     previous_filename: str = ""  # リネームの元のパス
 
 
+    @property
+    def paths(self):
+        """新旧のパス（リネームは両方で判定する）。"""
+        return [p for p in (self.filename, self.previous_filename) if p]
+
+
 @dataclass
 class Result:
     """判定の結果。"""
@@ -80,8 +86,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
 
     for c in changes:
         # リネームは新旧の両方で見る（critical のファイルを移して段階を下げられないように）
-        paths = [p for p in (c.filename, c.previous_filename) if p]
-        hit = [a for a, sp in areas if any(sp.match_file(p) for p in paths)]
+        hit = [a for a, sp in areas if any(sp.match_file(p) for p in c.paths)]
         tier = max((a["tier"] for a in hit), key=rank) if hit else default
         res.files[c.filename] = (tier, [a["id"] for a in hit if a["tier"] == tier])
         if tier == "critical":
@@ -106,7 +111,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
     lk = sig.get("lockfiles")
     if lk:
         sp = spec(lk["paths"])
-        hits = [c.filename for c in changes if sp.match_file(c.filename)]
+        hits = [c.filename for c in changes if any(sp.match_file(p) for p in c.paths)]
         if hits:
             raise_to(lk["tier"], f"依存の変更：{', '.join('`'+h+'`' for h in hits)}")
 
@@ -126,7 +131,7 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
         tests = [a for a in conf.get("areas", []) if a["id"] == "tests"]
         tsp = spec(tests[0]["paths"]) if tests else None
         if tsp:
-            gone = [c.filename for c in changes if tsp.match_file(c.filename)
+            gone = [c.filename for c in changes if any(tsp.match_file(p) for p in c.paths)
                     and (c.status == "removed" or c.deletions > c.additions)]
             if gone:
                 res.tier = bump(res.tier, sig["test_removed"].get("bump", 1)) if res.tier != "light" else "standard"

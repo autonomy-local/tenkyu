@@ -14,9 +14,10 @@ permissions:
   issues: write # ラベル
   statuses: write # review-gate
 
+# review-gate.yml と同じグループ。review-gate の書き込みを直列にする
 concurrency:
-  group: review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: review-gate-${{ github.event.pull_request.head.sha }}
+  cancel-in-progress: false
 
 jobs:
   impact:

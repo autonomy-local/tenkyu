@@ -47,10 +47,14 @@ def main():
         except json.JSONDecodeError as e:
             errors.append(f"{rel}：JSON が読めない（{e}）")
             continue
-        if not data.get("steps"):
-            errors.append(f"{rel}：steps が無い")
+        steps = data.get("steps") if isinstance(data, dict) else None
+        if not isinstance(steps, list) or not steps:
+            errors.append(f"{rel}：steps が空でない配列になっていない")
             continue
-        for i, st in enumerate(data["steps"], 1):
+        for i, st in enumerate(steps, 1):
+            if not isinstance(st, dict):
+                errors.append(f"{rel} の {i} 歩目：オブジェクトではない")
+                continue
             f = st.get("file") or st.get("directory")
             if not f:
                 continue

@@ -185,6 +185,9 @@ def main():
         comments=comments, codeowners=codeowners, toured=toured, author=pr["user"]["login"],
         escalated="review:escalate" in labels,
     )
+    if len(changes) < pr.get("changed_files", 0):  # API の上限で一覧が切れた
+        ok = False
+        lines.append("✗ 変更の一覧を全部は取得できなかった")
     print("\n".join(lines))
     desc = lines[0].replace("*", "") + "：" + ("そろった" if ok else "；".join(l for l in lines[1:] if l.startswith("✗") or "待って" in l)[:100])
     gh.post(f"/repos/{a.repo}/statuses/{head}", {

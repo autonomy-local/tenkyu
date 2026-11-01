@@ -98,7 +98,9 @@ def main():
     if pr.get("draft"):
         return
     env = dict(os.environ, GH_TOKEN=os.environ["GITHUB_TOKEN"])
-    if res.tier == "light" and s.get("auto_merge_light") and "review:escalate" not in have:
+    # API の上限で一覧が切れたら、見ていないファイルがあるので light として扱わない
+    complete = len(files) >= pr.get("changed_files", 0)
+    if res.tier == "light" and complete and s.get("auto_merge_light") and "review:escalate" not in have:
         r = subprocess.run(["gh", "pr", "merge", str(a.pr), "--repo", a.repo, "--auto", "--squash"], env=env, capture_output=True, text=True)
         print("自動マージ：" + ("入れた" if r.returncode == 0 else f"入れられなかった（{r.stderr.strip()[:200]}）"))
     elif pr.get("auto_merge"):
