@@ -1,0 +1,95 @@
+# 変更の重要度の正本。scripts/review/impact.py が PR ごとに段階を出し、
+# scripts/review/gate.py が段階に応じたレビューを求める（docs/review.md）。
+#
+# このファイルの判定は、PR の側ではなく main の側（base）のものを使う。PR が自分の段階を下げられないように。
+# 段階は critical > standard > light。どのパターンにも当たらないファイルは default。
+# パターンは .gitignore と同じ書き方。1つのファイルが複数に当たったら、一番重い段階を採る。
+
+settings:
+  default: standard
+  # standard の AI レビュー：coderabbit | none（none なら CODEOWNER の総括コメントで代える）
+  ai_reviewer: coderabbit
+  # PR を開いたときに「@coderabbitai review」とコメントして頼む（自動で回らない場合の保険。docs/review.md）
+  ai_request_comment: false
+  # critical：CODEOWNER が、当たった各ファイルに行へのコメントを1つ以上付けることを求める
+  require_line_comment_per_file: true
+  # critical：レビューする人が、その領域のツアーを済ませていること（.github/settings/ownership.yml）
+  reviewer_must_have_toured: false
+  # light は自動マージ（squash）
+  auto_merge_light: true
+  # 差分（追加＋削除の行数）がこれを超えたら1段上げる
+  large_change_lines: 800
+
+areas:
+  # ── critical：人のレビューが必須 ─────────────────────────────
+  - id: authn
+    tier: critical
+    reason: 認証と認可。誤ると、他人のデータが見える・操作できる
+    paths: ["**/auth/**", "**/authn/**", "**/authz/**", "**/session/**", "**/*session*", "**/*verifier*", "**/*passkey*", "**/*otp*", "**/*permission*", "**/*role*"]
+    tour: .tours/authn.tour
+  - id: data-schema
+    tier: critical
+    reason: DB のスキーマとマイグレーション。戻せない
+    paths: ["**/migrations/**", "**/migration/**", "db/**", "**/*.sql", "**/schema.*"]
+    tour: .tours/data-schema.tour
+  - id: deletion
+    tier: critical
+    reason: 削除・消去の処理。戻せない
+    paths: ["**/*delete*", "**/*erase*", "**/*purge*", "**/*retention*"]
+    tour: .tours/deletion.tour
+  - id: crypto-secrets
+    tier: critical
+    reason: 暗号と秘密情報。テストで落ちない種類の誤りが入る（principles 3）
+    paths: ["**/crypto/**", "**/*crypto*", "**/*keystore*", "secrets/**", "**/*.sops.*", ".sops.yaml"]
+    tour: .tours/crypto-secrets.tour
+  - id: public-api
+    tier: critical
+    reason: 外に出す約束（API の仕様）。変えると利用者が壊れる
+    paths: ["openapi/**", "**/*.openapi.*", "**/proto/**"]
+    tour: .tours/public-api.tour
+  - id: infra
+    tier: critical
+    reason: 本番の資源。止まる・消える・費用が出る
+    paths: ["infra/**", "**/wrangler.toml", "**/wrangler.jsonc", "**/firebase.json", "**/firestore.rules", "**/storage.rules"]
+    tour: .tours/infra.tour
+  - id: repo-rules
+    tier: critical
+    reason: リポジトリの規律そのもの（CI、ルール、レビューの判定、エージェントへの規約）
+    paths: [".github/workflows/**", ".github/settings/**", ".github/CODEOWNERS", "scripts/review/**", "scripts/check-kickoff.py", "AGENTS.md", "CLAUDE.md", ".coderabbit.yaml", "flake.nix", "nix/**"]
+    tour: .tours/repo-rules.tour
+  - id: decisions
+    tier: critical
+    reason: 決定（ADR）と要求（PRD）。状態の書き換えは人が行う
+    paths: ["docs/decisions/**", "docs/prd/**"]
+    tour: none
+
+  # ── light：レビュー不要（自動マージ） ─────────────────────────
+  - id: docs
+    tier: light
+    reason: 文書だけ
+    paths: ["docs/**", "*.md", ".tours/**"]
+  - id: tests
+    tier: light
+    reason: テストだけ（テストの削除は signals で上げる）
+    paths: ["**/*_test.go", "**/*.test.ts", "**/*.spec.ts", "**/tests/**", "**/test/**", "e2e/**"]
+
+# 中身を見て段階を上げる（下げることはしない）
+signals:
+  # 依存の追加・更新
+  lockfiles:
+    tier: standard
+    paths: ["**/package-lock.json", "**/pnpm-lock.yaml", "**/bun.lock", "**/bun.lockb", "**/go.sum", "**/Cargo.lock", "flake.lock", "**/packages.lock.json"]
+  # workflow の権限や secrets に触れる行
+  workflow_privilege:
+    tier: critical
+    paths: [".github/workflows/**"]
+    patterns: ["permissions:", "secrets\\.", "pull_request_target", "id-token"]
+  # テストの削除、またはテストの行が減った
+  test_removed:
+    bump: 1
+  # 差分が大きい（settings.large_change_lines）
+  large_change:
+    bump: 1
+  # PR の「ADR への影響」が「なし」以外
+  adr_impact:
+    tier: critical

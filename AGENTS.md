@@ -9,6 +9,7 @@
 
 ## 最初に読むもの
 
+0. [ARCHITECTURE.md](ARCHITECTURE.md)：コードの地図と critical の領域
 1. [docs/kickoff.md](docs/kickoff.md)：**着手の条件**。そろっていなければ実装に入らない
 2. [docs/prd/](docs/prd/)：何を、誰のために作るか
 3. 担当する Issue（終了条件・やらないこと・参考）
@@ -22,6 +23,13 @@
 - PRD と ADR 0001〜0007 がそろうまで（`python3 scripts/check-kickoff.py` で全部 ✓）、**実装に入りません**。文書の下書きだけを扱います
 - PRD の「承認」、ADR の「採用」への書き換えは人が行います。エージェントは書き換えません
 - `needs:decision` の付いた Issue は取りません
+
+### レビューの段階（[docs/review.md](docs/review.md)）
+
+- critical の領域（[.github/settings/risk.yml](.github/settings/risk.yml)、[ARCHITECTURE.md](ARCHITECTURE.md)）を触る前に、その領域のツアー（`.tours/`）を読みます
+- PR の「影響範囲（作成者の見立て）」を書きます。CI の判定と食い違ったら、その理由も書きます
+- **レビューの関門を弱める変更をしません**（risk.yml の段階を下げる、判定の条件を外す、判定を PR の側で動かす）。必要なら Issue で相談します
+- critical の領域のコードを大きく変えたら、ツアーも同じ PR で直します
 
 ### 作業の範囲
 
@@ -60,7 +68,7 @@
 ## 作業の終わりにやること
 
 1. テストと CI の `check` が通ることを確かめる
-2. 決定を伴う変更なら `docs/decisions/` に ADR を足す
+2. 決定を伴う変更なら `docs/decisions/` に ADR を足す（または PR の「ADR への影響」に書く）
 3. PR の本文に、対応する Issue と、終了条件ごとの根拠を書く
 
 ## よく使うコマンド

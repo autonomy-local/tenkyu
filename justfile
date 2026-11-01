@@ -10,7 +10,18 @@ fmt:
 # 手元でできる検査を全部（着手の条件、整形、pre-commit のフック）
 check:
     python3 scripts/check-kickoff.py
+    python3 -m unittest discover -s scripts/review/tests
+    python3 scripts/review/check-tours.py
     nix flake check
+
+# PR の段階を手元で見る（例：just impact src/a.ts db/x.sql）
+impact +files:
+    python3 scripts/review/impact.py --files {{files}}
+
+# レビューの判定のテストと、ツアーの検査
+review-test:
+    python3 -m unittest discover -s scripts/review/tests
+    python3 scripts/review/check-tours.py
 
 # Pulumi：preview（例：just infra-preview cloudflare dev）
 infra-preview target stack:

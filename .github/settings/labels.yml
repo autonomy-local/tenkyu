@@ -41,6 +41,20 @@
   color: "4285f4"
   description: Jules に渡す。付けると Jules の GitHub アプリが拾って作業を始め、PR を出す
 
+# レビュー（scripts/review/impact.py が付け替える。手で付けるのは review:escalate だけ）
+- name: review:critical
+  color: "b60205"
+  description: 人のレビューが必須（CODEOWNER の総括と、各ファイルへの行コメント）
+- name: review:standard
+  color: "fbca04"
+  description: AI のレビューの承認が必須
+- name: review:light
+  color: "c2e0c6"
+  description: レビュー不要（自動マージ）
+- name: review:escalate
+  color: "5319e7"
+  description: 手で critical に上げる（判定より重く扱いたいとき）
+
 # 優先度
 - name: p1
   color: "e11d21"

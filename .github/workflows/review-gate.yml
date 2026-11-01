@@ -1,0 +1,38 @@
+# レビューが付いたら、review-gate を付け直す。workflow_run なので main の側の定義とスクリプトで動く。
+name: review-gate
+
+on:
+  workflow_run:
+    workflows: [review-events]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false # 既定のブランチ（main）
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pyyaml pathspec
+      - name: PR の番号を探す
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          n=$(gh api "repos/${{ github.repository }}/commits/$HEAD_SHA/pulls" -q '.[0].number')
+          echo "number=$n" >> "$GITHUB_OUTPUT"
+      - name: review-gate
+        if: steps.pr.outputs.number != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/review/gate.py --pr ${{ steps.pr.outputs.number }}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "領域：リポジトリの規律（CI・判定・エージェントの規約）",
+  "description": "risk.yml の repo-rules。ここを変えると、レビューの関門そのものが変わる。critical のレビューの前に歩く。",
+  "steps": [
+    {
+      "file": ".github/workflows/review.yml",
+      "pattern": "pull_request_target",
+      "description": "判定は pull_request_target で動き、**main の側**の設定とスクリプトを使う。PR の側のコードは checkout も実行もしない。ここを pull_request に変えると、PR が自分の判定を書き換えられるようになる。"
+    },
+    {
+      "file": ".github/workflows/review-gate.yml",
+      "pattern": "workflow_run",
+      "description": "レビューが付いたら、workflow_run（main の側で動く）で review-gate を付け直す。review-events.yml は知らせるだけで、判定を置かない。"
+    },
+    {
+      "file": "scripts/review/risk.py",
+      "pattern": "^def classify",
+      "description": "段階の判定。パスで段階を決め、signals（依存の変更、workflow の権限、テストの削除、差分の大きさ、ADR への影響）で上げる。**下げる方向の処理を足さない。**"
+    },
+    {
+      "file": "scripts/review/gate.py",
+      "pattern": "^def evaluate",
+      "description": "関門の判定。人のコメントは、critical のファイルを最後に変えたコミット以降のものだけを数える。bot のコメントは数えない。"
+    },
+    {
+      "file": "scripts/review/tests/test_review.py",
+      "pattern": "^class Gate",
+      "description": "判定を変えたら、ここにテストを足す。CI の check で流れる。"
+    },
+    {
+      "file": ".github/settings/ruleset-main.json",
+      "pattern": "review-gate",
+      "description": "main の必須チェック。check（CI）と review-gate（コミットのステータス）。"
+    },
+    {
+      "file": "scripts/check-kickoff.py",
+      "pattern": "^def main",
+      "description": "着手の条件の検査。これも規律の一部なので critical。"
+    },
+    {
+      "file": "AGENTS.md",
+      "pattern": "^### 着手の条件",
+      "description": "エージェントへの規約。エージェントの振る舞いを変えるので critical。"
+    }
+  ]
+}

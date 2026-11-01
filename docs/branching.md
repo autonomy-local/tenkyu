@@ -25,9 +25,9 @@
 
 | ルール | 中身 |
 | --- | --- |
-| PR を必須 | 承認の数は 0（一人で回すため）。レビューのスレッドは解決してからマージ |
-| マージの方法 | squash だけ |
-| 必須のチェック | CI の `check` ジョブ |
+| PR を必須 | 承認の数は 0（一人で回すため）。人のレビューは段階ごとに `review-gate` が求める。レビューのスレッドは解決してからマージ |
+| マージの方法 | squash だけ。light の PR は自動マージ |
+| 必須のチェック | CI の `check` ジョブと、`review-gate`（段階に応じたレビュー。[review.md](review.md)） |
 | 履歴 | 一直線（required linear history） |
 | 禁止 | force push、`main` の削除 |
 

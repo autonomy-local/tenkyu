@@ -1,0 +1,47 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "00 はじめに：このリポジトリの歩き方",
+  "description": "最初に歩くツアー。何を作っているか、どこに何があるか、どう変更を入れるか。",
+  "steps": [
+    {
+      "file": "README.md",
+      "pattern": "^## 何をするか",
+      "description": "Tenkyu が何をし、何をしないか。設計の考え方もここに続く。"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "pattern": "^## コードの地図",
+      "description": "コードの地図。どこに何があり、依存がどちらを向くか。**critical の領域**がどこかもここで確かめる。"
+    },
+    {
+      "file": "AGENTS.md",
+      "pattern": "^## 守ること",
+      "description": "人とエージェントの共通の規約。エージェントに渡す前に、人も一度読む。"
+    },
+    {
+      "file": "docs/kickoff.md",
+      "pattern": "^## そろえるもの",
+      "description": "着手の条件。PRD と ADR 0001〜0007 がそろうまで、実装は main に入らない。"
+    },
+    {
+      "file": "docs/workflow.md",
+      "pattern": "^# Issue から PR まで",
+      "description": "Issue から PR までの流れと、ラベルの使い方。"
+    },
+    {
+      "file": ".github/settings/risk.yml",
+      "pattern": "^areas:",
+      "description": "変更の重要度の正本。ここで critical に当たる変更は、人が行にコメントを付けるまでマージできない。"
+    },
+    {
+      "file": "docs/review.md",
+      "pattern": "^## 段階",
+      "description": "レビューの段階と、それぞれで求めるもの。critical のレビューの仕方もここ。"
+    },
+    {
+      "file": "docs/environment.md",
+      "pattern": "^## 1\\. 立ち上げ",
+      "description": "開発環境の立ち上げ。`nix develop` で全員が同じ版のツールを使う。"
+    }
+  ]
+}
