@@ -1,0 +1,66 @@
+# CI。ジョブ名 `check` は main のルールセット（.github/settings/ruleset-main.json）の必須チェック。
+# 名前を変えるときは、ルールセットの側も合わせて変える。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet pyyaml
+
+      - name: Issue・PR のテンプレートとラベルの YAML が読める
+        run: |
+          for f in .github/ISSUE_TEMPLATE/*.yml .github/settings/labels.yml .github/settings/kickoff.yml; do
+            python3 -c "import sys,yaml; yaml.safe_load(open(sys.argv[1]))" "$f"
+          done
+          python3 -m json.tool .github/settings/ruleset-main.json > /dev/null
+
+      # PRD と最初の ADR がそろうまで、文書以外の変更を main に入れない（docs/kickoff.md）
+      - name: 着手の条件
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ -n "$BASE_REF" ]; then
+            python3 scripts/check-kickoff.py --base "origin/$BASE_REF"
+          else
+            python3 scripts/check-kickoff.py
+          fi
+
+      # lint・型検査・テストは #5（今-3）で足す
+
+  # 開発環境（flake）の検査：整形、pre-commit のフック（gitleaks）、devShell の評価。
+  # 必須のチェックではない（重いので、落ちたら直す運用）。必須にするならルールセットに nix を足す。
+  nix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: nix flake check
+        run: nix flake check --print-build-logs
+      - name: 既定の devShell が立ち上がる
+        run: nix develop --command just --list

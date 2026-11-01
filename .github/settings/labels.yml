@@ -1,0 +1,53 @@
+# ラベルの正本。scripts/bootstrap-repo.sh が GitHub に同期する。
+# 種別はコミットメッセージの接頭辞（feat: fix: ...）とそろえる。
+# 範囲（area:*）はリポジトリごとに末尾へ足す。
+
+# 種別
+- name: feat
+  color: "1d76db"
+  description: 機能の追加
+- name: fix
+  color: "d73a4a"
+  description: 不具合の修正
+- name: docs
+  color: "0075ca"
+  description: 文書だけの変更
+- name: chore
+  color: "cfd3d7"
+  description: ビルド・依存・設定など、振る舞いが変わらない作業
+- name: refactor
+  color: "a2eeef"
+  description: 振る舞いを変えないコードの整理
+- name: test
+  color: "bfd4f2"
+  description: テストの追加・修正
+
+# 進み具合
+- name: agent:ready
+  color: "0e8a16"
+  description: 終了条件が書けていて、エージェントが取ってよい
+- name: agent:wip
+  color: "fbca04"
+  description: エージェントが作業中
+- name: needs:decision
+  color: "b60205"
+  description: 人の判断待ち。推測で進めない
+- name: blocked
+  color: "000000"
+  description: ほかの Issue や外部の事情で止まっている
+
+# エージェントへの割り当て
+- name: jules
+  color: "4285f4"
+  description: Jules に渡す。付けると Jules の GitHub アプリが拾って作業を始め、PR を出す
+
+# 優先度
+- name: p1
+  color: "e11d21"
+  description: 優先度・高（今のスプリントで必ず）
+- name: p2
+  color: "eb6420"
+  description: 優先度・中
+- name: p3
+  color: "f9d0c4"
+  description: 優先度・低（手が空いたら）

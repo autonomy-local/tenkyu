@@ -1,0 +1,44 @@
+name: 決めてほしいこと
+description: 人の判断が要る論点を出す（決まったら ADR にする）
+title: "[判断] "
+labels: ["needs:decision"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        決まったら `docs/decisions/` に ADR を書き、この Issue を閉じます。決着済みの ADR を蒸し返す場合は、その ADR との差分だけを書きます
+  - type: textarea
+    id: question
+    attributes:
+      label: 決めること
+      description: 一文で
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: 案と、それぞれの得失
+      placeholder: |
+        - 案A：
+        - 案B：
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: 推す案と理由
+    validations:
+      required: false
+  - type: textarea
+    id: deadline
+    attributes:
+      label: いつまでに／決まらないと止まるもの
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: 参考
+      description: 関連する ADR、Issue、資料
+    validations:
+      required: false
