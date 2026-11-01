@@ -130,7 +130,7 @@ def collect(repo, number):
 
     pr = gh.get(f"/repos/{repo}/pulls/{number}")
     files = gh.paged(f"/repos/{repo}/pulls/{number}/files")
-    changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", "")) for f in files]
+    changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", ""), f.get("previous_filename", "")) for f in files]
     commits = [c["sha"] for c in gh.paged(f"/repos/{repo}/pulls/{number}/commits")]
     commit_files = {sha: [f["filename"] for f in gh.get(f"/repos/{repo}/commits/{sha}").get("files", [])] for sha in commits}
     reviews = [

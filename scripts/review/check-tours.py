@@ -45,7 +45,10 @@ def main():
         except json.JSONDecodeError as e:
             errors.append(f"{rel}：JSON が読めない（{e}）")
             continue
-        for i, st in enumerate(data.get("steps", []), 1):
+        if not data.get("steps"):
+            errors.append(f"{rel}：steps が無い")
+            continue
+        for i, st in enumerate(data["steps"], 1):
             f = st.get("file") or st.get("directory")
             if not f:
                 continue

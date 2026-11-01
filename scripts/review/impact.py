@@ -66,7 +66,7 @@ def main():
 
     pr = gh.get(f"/repos/{a.repo}/pulls/{a.pr}")
     files = gh.paged(f"/repos/{a.repo}/pulls/{a.pr}/files")
-    changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", "")) for f in files]
+    changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", ""), f.get("previous_filename", "")) for f in files]
     res = risk.classify(conf, changes, pr.get("body") or "")
     print(f"段階：{res.tier}")
 

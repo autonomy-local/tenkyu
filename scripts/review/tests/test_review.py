@@ -60,6 +60,13 @@ class Classify(unittest.TestCase):
         r = risk.classify(CONF, [f])
         self.assertEqual(r.tier, "critical")
 
+    def test_rename_from_critical_stays_critical(self):
+        f = F("docs/login.md", status="renamed", previous_filename="src/auth/login.ts")
+        self.assertEqual(tier(f), "critical")
+
+    def test_pr_template_is_critical(self):
+        self.assertEqual(tier(".github/PULL_REQUEST_TEMPLATE.md"), "critical")
+
     def test_codeowners_last_match_wins(self):
         self.assertEqual(risk.owners_of(OWNERS, "docs/a.md"), ["bob"])
         self.assertEqual(risk.owners_of(OWNERS, "src/a.ts"), ["alice"])

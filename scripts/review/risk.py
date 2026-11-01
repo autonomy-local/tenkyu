@@ -32,6 +32,7 @@ class FileChange:
     additions: int = 0
     deletions: int = 0
     patch: str = ""
+    previous_filename: str = ""  # リネームの元のパス
 
 
 @dataclass
@@ -70,7 +71,9 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
     res = Result(tier="light")
 
     for c in changes:
-        hit = [a for a, sp in areas if sp.match_file(c.filename)]
+        # リネームは新旧の両方で見る（critical のファイルを移して段階を下げられないように）
+        paths = [p for p in (c.filename, c.previous_filename) if p]
+        hit = [a for a, sp in areas if any(sp.match_file(p) for p in paths)]
         tier = max((a["tier"] for a in hit), key=rank) if hit else default
         res.files[c.filename] = (tier, [a["id"] for a in hit if a["tier"] == tier])
         if tier == "critical":

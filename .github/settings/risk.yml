@@ -55,7 +55,7 @@ areas:
   - id: repo-rules
     tier: critical
     reason: リポジトリの規律そのもの（CI、ルール、レビューの判定、エージェントへの規約）
-    paths: [".github/workflows/**", ".github/settings/**", ".github/CODEOWNERS", "scripts/review/**", "scripts/check-kickoff.py", "AGENTS.md", "CLAUDE.md", ".coderabbit.yaml", "flake.nix", "nix/**"]
+    paths: [".github/workflows/**", ".github/settings/**", ".github/CODEOWNERS", ".github/PULL_REQUEST_TEMPLATE.md", ".gemini/**", "scripts/review/**", "scripts/check-kickoff.py", "scripts/bootstrap-repo.sh", "AGENTS.md", "CLAUDE.md", ".coderabbit.yaml", "flake.nix", "nix/**"]
     tour: .tours/repo-rules.tour
   - id: decisions
     tier: critical
