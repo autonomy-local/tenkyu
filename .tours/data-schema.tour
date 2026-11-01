@@ -1,0 +1,37 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "データベーススキーマとマイグレーション（data-schema）",
+  "description": "Tenkyu の D1 データベーススキーマとマイグレーションの設計。表の役割とセキュリティ上の制約を歩きます。",
+  "steps": [
+    {
+      "file": "docs/schema.md",
+      "pattern": "^## 基本方針",
+      "description": "基本方針：主体の台帳を持たず参照のみ、OIDCクレーム対応、個人情報・秘密値の平文不保持、日時のUNIXエポック秒統一。"
+    },
+    {
+      "file": "docs/schema.md",
+      "pattern": "^## マイグレーション一覧",
+      "description": "マイグレーションファイル（0001〜0004）の一覧と順序。"
+    },
+    {
+      "file": "docs/schema.md",
+      "pattern": "^### 1\\. `identities`",
+      "description": "identities 表：主体ID（sub）と認証手段（provider, provider_subject）の紐付け。provider と識別子の組で一意。"
+    },
+    {
+      "file": "docs/schema.md",
+      "pattern": "^### 2\\. `sessions`",
+      "description": "sessions 表：サーバー側セッションの保持。sub, service, amr, auth_time 等の OIDC 標準クレームに対応。"
+    },
+    {
+      "file": "docs/schema.md",
+      "pattern": "^### 3\\. `auth_events`",
+      "description": "auth_events 表：認証の監査記録。メールアドレスやコードなどの入力値を平文で保持しない原則（email や code を含む列を持たない）。"
+    },
+    {
+      "file": "docs/schema.md",
+      "pattern": "^### 4\\. `email_codes`",
+      "description": "email_codes 表：メール確認コードの一時保持。宛先とコードは平文ではなくハッシュ（_hash で終わる列名）で保持。"
+    }
+  ]
+}
