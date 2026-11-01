@@ -206,14 +206,14 @@ def build(feature: str, spec: Spec, phases: list[Phase], spec_path: str, tasks_p
         crit = []
         if st:
             crit += [f"- [ ] {s}" for s in st.scenarios]
-        test = (st.independent_test if st and st.independent_test else "") or p.independent_test
-        if test:
-            crit.append(f"- [ ] 単独で確かめられる：{test}")
+        # spec.md と tasks.md で違うときは、両方を残す
+        tests = dict.fromkeys(t for t in (st.independent_test if st else "", p.independent_test) if t)
+        crit += [f"- [ ] 単独で確かめられる：{t}" for t in tests]
         crit += [f"- [ ] {c}" for c in p.checkpoints]
         open_tasks = [t for t in p.tasks if not t.done]
         if not crit:
             decision.append("終了条件が作れない（受け入れのシナリオ・Independent Test・Checkpoint が無い）")
-        crit.append(f"- [ ] `{tasks_path}` の {open_tasks[0].id if open_tasks else ''}〜{open_tasks[-1].id if open_tasks else ''} がすべて完了している（チェックが付いている）" if open_tasks else "- [ ] （このフェーズのタスクは完了済み）")
+        crit.append(f"- [ ] この Issue の「やること」の {open_tasks[0].id}〜{open_tasks[-1].id} がすべて完了している" if open_tasks else "- [ ] （このフェーズのタスクは完了済み）")
 
         if st and st.clarify:
             decision.append("spec.md のこのストーリーに [NEEDS CLARIFICATION] が残っている")
@@ -286,16 +286,18 @@ def main():
     feature = d.name
     spec_path, tasks_path = (d / "spec.md").as_posix(), (d / "tasks.md").as_posix()
     spec = parse_spec((d / "spec.md").read_text(encoding="utf-8"))
-    phases = parse_tasks((d / "tasks.md").read_text(encoding="utf-8"))
+    tasks_text = (d / "tasks.md").read_text(encoding="utf-8")
+    phases = parse_tasks(tasks_text)
     if a.apply and not a.repo:
         import subprocess
         a.repo = subprocess.run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
                                 capture_output=True, text=True, check=True).stdout.strip()
     link = (lambda path: f"https://github.com/{a.repo}/blob/{a.branch}/{path}") if a.repo else None
     drafts = build(feature, spec, phases, spec_path, tasks_path, link)
-    if spec.clarify:
-        print(f"spec.md に未解決の点が {len(spec.clarify)} 件ある（/speckit-clarify で片づける）：", file=sys.stderr)
-        for c in spec.clarify:
+    clarify = spec.clarify + [l.strip() for l in tasks_text.splitlines() if CLARIFY.search(l)]
+    if clarify:
+        print(f"spec.md・tasks.md に未解決の点が {len(clarify)} 件ある（/speckit-clarify で片づける）：", file=sys.stderr)
+        for c in clarify:
             print(f"  - {c}", file=sys.stderr)
         if a.apply and not a.allow_unclear:
             print("Issue は作らない。片づけてから流すか、--allow-unclear を付ける", file=sys.stderr)

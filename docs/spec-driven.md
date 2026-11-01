@@ -32,7 +32,7 @@ cp docs/spec-kit/constitution.md .specify/memory/constitution.md
 | --- | --- |
 | フェーズ（Setup、Foundational、User Story ごと、Polish） | **1フェーズ＝1 Issue**（1 Issue＝1 PR に寄せる） |
 | フェーズのタスク（`T001`…、`[P]`） | やること（チェックリスト） |
-| ストーリーの受け入れのシナリオ、Independent Test、Checkpoint | 終了条件 |
+| ストーリーの受け入れのシナリオ、Independent Test（spec.md と tasks.md で違えば両方）、Checkpoint | 終了条件 |
 | `## Assumptions` の「範囲外」「対象外」 | やらないこと |
 | フェーズの順（Setup → Foundational → ストーリー → Polish） | 前提となる Issue（番号でつなぐ） |
 | 優先度 P1・P2・それ以外 | `p1`・`p2`・`p3` |
@@ -40,7 +40,7 @@ cp docs/spec-kit/constitution.md .specify/memory/constitution.md
 
 - **`agent:ready` は付けない。** 人が中身を見てから付ける（Jules に渡すなら `jules` も）
 - 次の Issue には `needs:decision` を付ける：終了条件が作れない／やらないことが無い／そのストーリーに `[NEEDS CLARIFICATION]` が残る
-- spec.md のどこかに `[NEEDS CLARIFICATION]` が残っていれば、`--apply` は止まる（`/speckit-clarify` で片づける。どうしても進めるなら `--allow-unclear`）
+- spec.md か tasks.md のどこかに `[NEEDS CLARIFICATION]` が残っていれば、`--apply` は止まる（`/speckit-clarify` で片づける。どうしても進めるなら `--allow-unclear`）
 - 本文に `<!-- spec: <機能>/<フェーズ> -->` の印を入れる。同じ印の Issue があれば作らない（何度流してもよい。既存の Issue は書き換えない）
 
 ## このリポジトリの型との対応

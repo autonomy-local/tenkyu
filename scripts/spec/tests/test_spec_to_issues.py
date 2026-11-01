@@ -92,5 +92,16 @@ class Build(unittest.TestCase):
             self.assertIn(f"### {h}", DRAFTS["US1"].body)
 
 
+class IndependentTest(unittest.TestCase):
+    def test_keeps_both_when_spec_and_tasks_differ(self):
+        spec = s.Spec()
+        spec.stories["US1"] = s.Story("1", "題", "P1", independent_test="spec の確かめ方")
+        phase = s.Phase("1", "題", "US1", "story", independent_test="tasks の確かめ方",
+                          tasks=[s.Task("T001", False, False, "US1", "作る")])
+        body = s.build("f", spec, [phase], "s.md", "t.md")[0].body
+        self.assertIn("spec の確かめ方", body)
+        self.assertIn("tasks の確かめ方", body)
+
+
 if __name__ == "__main__":
     unittest.main()
