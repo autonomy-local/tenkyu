@@ -1,0 +1,17 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "領域：認証と認可（authn）",
+  "description": "Tenkyu の認証・認可およびセッション運用の設計。誤ると他人のデータが見える・操作できる重大な事故につながるため、変更時は慎重なレビューを要します。",
+  "steps": [
+    {
+      "file": "docs/schema.md",
+      "pattern": "^### 2\\. `sessions`",
+      "description": "sessions 表：サーバー側セッションの保持。トークンはハッシュ化し、revoked_at で失効を管理。"
+    },
+    {
+      "file": "docs/runbook/revoke-all-sessions.md",
+      "pattern": "^## 実行コマンド",
+      "description": "漏えい等のインシデント発生時に全セッションを一括失効させる非常時の運用手順。"
+    }
+  ]
+}
