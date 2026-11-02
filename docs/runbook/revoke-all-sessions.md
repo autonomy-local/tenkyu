@@ -32,6 +32,8 @@ npx wrangler d1 execute tenkyu-db --remote --command "SELECT count(*) AS active_
 npx wrangler d1 execute tenkyu-db --remote --command "UPDATE sessions SET revoked_at = unixepoch() WHERE revoked_at IS NULL;"
 ```
 
+> **注意**: このクエリは実行時点で存在するセッション行を更新します。実行直後にログイン処理が並行して走った場合、新規作成されたセッションは失効対象に含まれません。インシデント等で新規セッションの発行自体も停止させたい場合は、認証経路の一時制限（Worker や Cloudflare Access の設定変更等）をあわせて検討してください。
+
 ---
 
 ## 確かめ方
@@ -48,10 +50,10 @@ npx wrangler d1 execute tenkyu-db --remote --command "SELECT count(*) AS remaini
 
 ### 2. 失効時刻の確認
 
-直近で失効処理されたセッションの `revoked_at` が正しく設定されていることを確認します。
+直近で失効処理されたセッションの `revoked_at` が正しく設定されていることを確認します（インシデント記録やログ等への出力時に個人情報やセッション識別子が残らないよう、`service` と `revoked_at` のみを出力します）。
 
 ```sh
-npx wrangler d1 execute tenkyu-db --remote --command "SELECT id, sub, service, revoked_at FROM sessions ORDER BY revoked_at DESC LIMIT 5;"
+npx wrangler d1 execute tenkyu-db --remote --command "SELECT service, revoked_at FROM sessions ORDER BY revoked_at DESC LIMIT 5;"
 ```
 
 ### 3. アプリケーション側での挙動確認
@@ -63,10 +65,10 @@ npx wrangler d1 execute tenkyu-db --remote --command "SELECT id, sub, service, r
 ## 利用者への影響
 
 - **全利用者の強制ログアウト**:
-  - ログイン中だったすべての利用者のセッションが無効化され、次回アクセス時または操作時にログイン画面へ戻されます。
+  - ログイン中だったすべての利用者のセッションが無効化されます。各連携サービス側でセッション検証結果のキャッシュ（最長60秒程度）が有効な間は一時的に操作が継続できる場合がありますが、キャッシュ失効後の次回アクセスまたは操作時にログイン画面へ戻されます。
 - **未保存データの喪失リスク**:
   - 利用者が画面上で編集中のデータがある場合、再ログインが求められることで保存操作が中断される可能性があります。
 - **再ログインの必要性**:
   - 業務・サービス利用を再開するには、再度パスキーやメール確認コード等の認証手順が必要となります。
 - **各サービスのキャッシュ時間に伴う反映遅延**:
-  - ADR 0004 および ADR 0017 に基づき、Service Binding 先の各サービスが検証結果を短い時間キャッシュしている場合、キャッシュが切れるまでのわずかな時間は操作が継続できることがあります。即時反映が必要な場合はキャッシュ時間の考慮も必要です。
+  - ADR 0004、ADR 0017、および `docs/contract.md` に基づき、Service Binding 先の各サービスが検証結果を短い時間キャッシュ（最長60秒）している場合、キャッシュが切れるまでのわずかな時間は操作が継続できることがあります。即時反映が必要な場合はキャッシュ時間の考慮も必要です。
