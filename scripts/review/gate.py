@@ -17,18 +17,14 @@ import argparse
 import os
 import pathlib
 import sys
-import urllib.error
 from dataclasses import dataclass
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
+import github as gh  # noqa: E402
 import risk  # noqa: E402
+from github import TRUSTED, WRITE, is_trusted  # noqa: E402, F401
 
 AI_LOGINS = {"coderabbit": "coderabbitai[bot]"}
-# 公開リポジトリでは誰でもコメントできるので、関係者のレビューだけを数える。
-# 組織のメンバーシップが非公開の人は、GITHUB_TOKEN からは author_association で関係者に見えないことがある。
-# そのときはリポジトリへの権限で確かめる（CODEOWNERS のログイン名を別の人が取得しても、権限がなければ数えない）
-TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
-WRITE = {"admin", "maintain", "write"}
 
 
 @dataclass
@@ -138,27 +134,8 @@ def evaluate(conf, result, *, head, commits, commit_files, reviews, comments, co
 
 # ── GitHub から集める ─────────────────────────────────────────
 
-def is_trusted(repo, item, cache):
-    """レビューの書き手が関係者かを返す。権限を確かめられないときは数えない。"""
-    import github as gh
-
-    if item["user"]["type"] == "Bot":
-        return False
-    if item.get("author_association") in TRUSTED:
-        return True
-    login = item["user"]["login"]
-    if login not in cache:
-        try:
-            cache[login] = gh.get(f"/repos/{repo}/collaborators/{login}/permission").get("permission") in WRITE
-        except urllib.error.HTTPError:
-            cache[login] = False
-    return cache[login]
-
-
 def collect(repo, number):
     """判定に要る PR の情報を GitHub から集める。関係者以外の人のレビューは落とす。"""
-    import github as gh
-
     pr = gh.get(f"/repos/{repo}/pulls/{number}")
     files = gh.paged(f"/repos/{repo}/pulls/{number}/files")
     changes = [risk.FileChange(f["filename"], f["status"], f["additions"], f["deletions"], f.get("patch", ""), f.get("previous_filename", "")) for f in files]

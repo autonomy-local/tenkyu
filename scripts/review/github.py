@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.error
+import urllib.parse
 import urllib.request
 
 API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
@@ -56,3 +58,30 @@ def delete(path):
     except urllib.error.HTTPError as e:
         if e.code != 404:
             raise
+
+
+# 公開リポジトリでは誰でもコメントや PR を出せるので、関係者を確かめる。
+# 組織のメンバーシップが非公開の人は、GITHUB_TOKEN からは author_association で関係者に見えないことがある。
+# そのときはリポジトリへの権限で確かめる（ログイン名を別の人が取得しても、権限がなければ通さない）。
+TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
+WRITE = {"admin", "maintain", "write"}
+
+
+def is_trusted(repo: str, item: dict, cache: dict) -> bool:
+    """PR・レビュー・コメントの作成者が、書き込み権限を持つ人間の関係者かを返す。"""
+    user = item.get("user") or {}
+    if user.get("type") == "Bot":
+        return False
+    if item.get("author_association") in TRUSTED:
+        return True
+    login = user.get("login")
+    if not login:
+        return False
+    if login not in cache:
+        quoted = urllib.parse.quote(login, safe="")
+        try:
+            perm = (get(f"/repos/{repo}/collaborators/{quoted}/permission") or {}).get("permission")
+            cache[login] = perm in WRITE
+        except urllib.error.HTTPError:
+            cache[login] = False
+    return cache[login]

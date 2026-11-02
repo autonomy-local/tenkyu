@@ -29,6 +29,11 @@
       "description": "関門の判定。人のコメントは、critical のファイルを最後に変えたコミット以降のものだけを数える。bot のコメントは数えない。"
     },
     {
+      "file": "scripts/review/external_pr.py",
+      "pattern": "^def should_close",
+      "description": "外からの PR の判定。フォークは常に閉じ、同じリポジトリの PR は bot か書き込み権限がある関係者（非公開の組織メンバーを含む。github.is_trusted で gate.py と共通）だけを通す。"
+    },
+    {
       "file": "scripts/review/tests/test_review.py",
       "pattern": "^class Gate",
       "description": "判定を変えたら、ここにテストを足す。CI の check で流れる。"

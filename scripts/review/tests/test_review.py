@@ -12,6 +12,7 @@ HERE = pathlib.Path(__file__).resolve()
 sys.path.insert(0, str(HERE.parents[1]))
 ROOT = HERE.parents[3]
 
+import external_pr  # noqa: E402
 import gate  # noqa: E402
 import risk  # noqa: E402
 from gate import LineComment, Review  # noqa: E402
@@ -218,6 +219,82 @@ class Collect(unittest.TestCase):
         item = user(AI, "NONE", "Bot")
         _, _, _, _, reviews, _ = self.collect([item], [], {})
         self.assertFalse(reviews[0].trusted)
+
+
+class ExternalPr(unittest.TestCase):
+    def make_pr(self, login, association, *, head_repo="o/r", kind="User", state="open"):
+        repo_obj = {"full_name": head_repo, "html_url": f"https://github.com/{head_repo}"} if head_repo else None
+        return {
+            "state": state,
+            "user": {"login": login, "type": kind},
+            "author_association": association,
+            "head": {"ref": "feat/x", "repo": repo_obj},
+        }
+
+    def run_check(self, pr, permissions=None):
+        permissions = permissions or {}
+        comments, patches = [], []
+
+        def get(path):
+            if path == "/repos/o/r/pulls/1":
+                return pr
+            if path.endswith("/permission"):
+                login = path.split("/")[-2]
+                if login not in permissions:
+                    raise urllib.error.HTTPError(path, 404, "not found", None, None)
+                return {"permission": permissions[login]}
+            return {}
+
+        def post(path, body):
+            comments.append((path, body["body"]))
+
+        def patch(path, body):
+            patches.append((path, body))
+
+        with mock.patch("github.get", get), mock.patch("github.post", post), mock.patch("github.patch", patch):
+            closed = external_pr.run_pr("o/r", 1)
+        return closed, comments, patches
+
+    def test_private_member_same_repo_is_not_closed(self):
+        for assoc in ("CONTRIBUTOR", "NONE"):
+            pr = self.make_pr(ME, assoc)
+            closed, comments, patches = self.run_check(pr, {ME: "admin"})
+            self.assertFalse(closed)
+            self.assertEqual(comments, [])
+            self.assertEqual(patches, [])
+
+    def test_public_member_same_repo_is_not_closed(self):
+        pr = self.make_pr(ME, "MEMBER")
+        closed, comments, patches = self.run_check(pr)
+        self.assertFalse(closed)
+        self.assertEqual(comments, [])
+        self.assertEqual(patches, [])
+
+    def test_same_repo_bot_is_not_closed(self):
+        pr = self.make_pr("google-labs-jules[bot]", "NONE", kind="Bot")
+        closed, comments, patches = self.run_check(pr)
+        self.assertFalse(closed)
+        self.assertEqual(comments, [])
+        self.assertEqual(patches, [])
+
+    def test_fork_pr_is_closed(self):
+        for kind, head_repo in (("User", "forker/r"), ("Bot", "forker/r"), ("User", None)):
+            pr = self.make_pr("forker", "NONE", head_repo=head_repo, kind=kind)
+            closed, comments, patches = self.run_check(pr, {"forker": "admin"})
+            self.assertTrue(closed)
+            self.assertEqual(len(comments), 1)
+            if head_repo:
+                self.assertIn("https://github.com/forker/r/tree/feat/x", comments[0][1])
+            self.assertEqual(patches, [("/repos/o/r/pulls/1", {"state": "closed"})])
+
+    def test_outsider_same_repo_is_closed(self):
+        for perms in ({"eve": "read"}, {"eve": "none"}, {}):
+            pr = self.make_pr("eve", "NONE")
+            closed, comments, patches = self.run_check(pr, perms)
+            self.assertTrue(closed)
+            self.assertEqual(len(comments), 1)
+            self.assertNotIn("フォークのブランチ", comments[0][1])
+            self.assertEqual(patches, [("/repos/o/r/pulls/1", {"state": "closed"})])
 
 
 if __name__ == "__main__":
