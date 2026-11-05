@@ -1,0 +1,22 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "削除・消去（deletion）",
+  "description": "Tenkyu が何をいつ消すか。削除は戻せないので、期限と退会のときの扱いを先に読みます。",
+  "steps": [
+    {
+      "file": "ARCHITECTURE.md",
+      "pattern": "^\\| 削除・消去 \\|",
+      "description": "削除・消去は critical の領域。戻せないので、人が行にコメントを付けるまでマージできない。"
+    },
+    {
+      "file": "docs/data-retention.md",
+      "pattern": "^## データごとの期限",
+      "description": "データごとの期限。期限を過ぎた行は Cron Trigger で消す（次-8b）。値は〔案〕で、人が決める（ADR 0006）。"
+    },
+    {
+      "file": "docs/data-retention.md",
+      "pattern": "^## 退会のとき",
+      "description": "退会のときの扱い。auth_events は主体の ID を外して残し、ほかは物理削除（〔案〕）。Time Travel に残る期間も利用者に伝える。"
+    }
+  ]
+}
