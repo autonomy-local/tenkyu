@@ -1,0 +1,17 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "インフラ・本番資源（infra）",
+  "description": "Tenkyu のインフラ・本番資源の設定。Workers や D1 などの本番資源に関わるため、停止や費用の発生を防ぐ慎重なレビューを要します。",
+  "steps": [
+    {
+      "file": "docs/deploy.md",
+      "pattern": "^## Pulumi と wrangler の役割分担",
+      "description": "IaC（Pulumi）とアプリケーション配備（wrangler）の役割分担。インフラの正本と Worker コードの境界を定めます。"
+    },
+    {
+      "file": "wrangler.toml",
+      "pattern": "^workers_dev = false",
+      "description": "本番公開ルートを持たず、意図しない外部公開（workers.dev ドメイン）を防ぐための設定。"
+    }
+  ]
+}
