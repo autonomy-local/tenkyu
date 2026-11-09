@@ -71,6 +71,7 @@ pre-commit のフック（整形と gitleaks）は、シェルに入ったとき
 | **sops ＋ age** | 秘密情報の正本を暗号化したファイル1か所に置く | funadansu ADR-0003 |
 | **treefmt、pre-commit、gitleaks** | 機械で守れる規律だけを規律にする。整形と秘密情報の混入はコミットの時点で止める | principles 3 |
 | **Playwright を Nix から** | E2E のブラウザーを Nix で固定する。npm の `@playwright/test` は `$PLAYWRIGHT_VERSION` に合わせる | 0023 |
+| **NixOS での workerd 互換** | NixOS 上で npm の workerd（unpatched ELF バイナリ）を実行できるよう、`NIX_LD` 環境変数と `patchelf` を提供 | |
 | **just** | よく使うコマンドを1か所に。AGENTS.md はここを指す | |
 | **Spec Kit** | 要求から分解までの下書きを作る道具。出口（Issue）はこちらの型に固定する（docs/spec-driven.md） | |
 
@@ -100,4 +101,5 @@ rm dev.json                                          # 状態には秘密の値�
 | Playwright がブラウザーを取りに行く | `@playwright/test` の版を `$PLAYWRIGHT_VERSION` に合わせる |
 | Firebase のエミュレーターが起動しない | `java -version` が 21 か。シェルの外の Java を拾っていないか |
 | WSL で遅い・権限がおかしい | リポジトリを `/mnt/c` の下から WSL 側の `~/` に移す |
+| NixOS で `workerd` が動かない | 初回 `pnpm install` 実行後に自動パッチ（`postinstall`）が走るほか、`nix develop` に入り直すことでも自動パッチされます。独自のバイナリを使う場合は `MINIFLARE_WORKERD_PATH` を指定 |
 | ツールが足りない | `nix/` に足す PR を出す。`npm i -g` や `curl \| sh` で入れない |
