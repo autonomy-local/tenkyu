@@ -39,10 +39,10 @@ in
   shellHook = ''
     export PLAYWRIGHT_VERSION="${pkgs.playwright-driver.version}"
     ${lib.optionalString stdenv.hostPlatform.isLinux ''
-      # NixOS で互換リンカーがない場合でも npm の workerd を起動できるよう、未パッチのバイナリを自動パッチ
+      # NixOS で互換リンカーがない場合でも npm の workerd を起動できるよう、未パッチのバイナリ（.pnpm 配下を含む）を自動パッチ
       if [ -n "$NIX_LD" ] && [ -d "$REPO_ROOT/node_modules" ]; then
-        for bin in $(find "$REPO_ROOT/node_modules" -path "*/@cloudflare/workerd-*/bin/workerd" 2>/dev/null); do
-          if [ -f "$bin" ] && [ -x "$bin" ]; then
+        for bin in $(find "$REPO_ROOT/node_modules" -type f -name workerd 2>/dev/null); do
+          if [ -x "$bin" ]; then
             patchelf --set-interpreter "$NIX_LD" "$bin" 2>/dev/null || true
           fi
         done

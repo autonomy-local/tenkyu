@@ -101,5 +101,5 @@ rm dev.json                                          # 状態には秘密の値�
 | Playwright がブラウザーを取りに行く | `@playwright/test` の版を `$PLAYWRIGHT_VERSION` に合わせる |
 | Firebase のエミュレーターが起動しない | `java -version` が 21 か。シェルの外の Java を拾っていないか |
 | WSL で遅い・権限がおかしい | リポジトリを `/mnt/c` の下から WSL 側の `~/` に移す |
-| NixOS で `workerd` が動かない | `nix develop` 内で `NIX_LD` と自動パッチが有効になる。独自のバイナリを使う場合は `MINIFLARE_WORKERD_PATH` を指定 |
+| NixOS で `workerd` が動かない | 初回 `pnpm install` 実行後に自動パッチ（`postinstall`）が走るほか、`nix develop` に入り直すことでも自動パッチされます。独自のバイナリを使う場合は `MINIFLARE_WORKERD_PATH` を指定 |
 | ツールが足りない | `nix/` に足す PR を出す。`npm i -g` や `curl \| sh` で入れない |
