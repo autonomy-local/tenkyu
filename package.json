@@ -4,18 +4,26 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "vite build admin-ui",
+    "dev": "vite admin-ui",
     "lint": "biome lint",
     "postinstall": "node scripts/patch-workerd.mjs",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --project admin-ui/tsconfig.json --noEmit"
   },
   "dependencies": {
-    "hono": "^4.7.2"
+    "@solidjs/web": "^2.0.3",
+    "hono": "^4.7.2",
+    "solid-js": "^2.0.3"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.23.0",
     "@cloudflare/workers-types": "^4.20250224.0",
+    "@solidjs/vite-plugin": "^3.0.1",
+    "@vanilla-extract/css": "^1.21.3",
+    "@vanilla-extract/vite-plugin": "^5.2.6",
     "typescript": "^5.7.3",
+    "vite": "^8.3.8",
     "vitest": "^4.1.12",
     "wrangler": "^3.111.0"
   }
