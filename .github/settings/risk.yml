@@ -95,6 +95,8 @@ signals:
   # 差分が大きい（settings.large_change_lines）
   large_change:
     bump: 1
+    # lockfiles.paths に当たるファイルの行は数えない（依存の変更は lockfiles のシグナルで standard 以上にする）
+    exclude_lockfiles: true
   # PR の「ADR への影響」が「なし」以外
   adr_impact:
     tier: critical
