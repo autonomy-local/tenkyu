@@ -138,11 +138,17 @@ def classify(conf: dict, changes: list[FileChange], body: str = "") -> Result:
                 res.reasons.append(f"テストの削除・減少：{', '.join('`'+g+'`' for g in gone)}")
 
     if "large_change" in sig:
-        total = sum(c.additions + c.deletions for c in changes)
+        lc = sig["large_change"] or {}
+        # lockfile の行は数えない（依存の変更は lockfiles のシグナルで見る）。
+        # リネームは新旧の両方が lockfile のときだけ外す（lockfile を装って行を隠せないように）
+        lsp = spec(lk["paths"]) if lk and lc.get("exclude_lockfiles") else None
+        skipped = [c for c in changes if lsp and all(lsp.match_file(p) for p in c.paths)]
+        total = sum(c.additions + c.deletions for c in changes if c not in skipped)
         limit = s.get("large_change_lines", 800)
         if total > limit:
-            res.tier = bump(res.tier, sig["large_change"].get("bump", 1))
-            res.reasons.append(f"差分が大きい：{total} 行（{limit} 行を超える）")
+            res.tier = bump(res.tier, lc.get("bump", 1))
+            note = f"、lockfile の {sum(c.additions + c.deletions for c in skipped)} 行を除く" if skipped else ""
+            res.reasons.append(f"差分が大きい：{total} 行（{limit} 行を超える{note}）")
 
     if "adr_impact" in sig:
         t = adr_impact(body)

@@ -31,7 +31,7 @@
 | 依存の変更（lockfile） | standard 以上 |
 | workflow の `permissions`・`secrets.`・`pull_request_target`・`id-token` に触れる行 | critical |
 | テストの削除・減少 | 1段 |
-| 差分が `large_change_lines`（800 行）を超える | 1段 |
+| 差分が `large_change_lines`（800 行）を超える（lockfile の行は数えない） | 1段 |
 | PR の「ADR への影響」が「なし」以外 | critical |
 | 手で `review:escalate` を付ける | critical（全ファイルが対象） |
 

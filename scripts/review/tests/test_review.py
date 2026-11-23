@@ -53,6 +53,29 @@ class Classify(unittest.TestCase):
     def test_large_change_raises(self):
         self.assertEqual(tier(F("src/app.ts", additions=900)), "critical")
 
+    def test_large_change_ignores_lockfile_lines(self):
+        # PR #172：1,407 行のうち 1,160 行が pnpm-lock.yaml。lockfile を除けば 247 行で、上げない
+        files = [F("admin-ui/src/main.tsx", additions=247), F("pnpm-lock.yaml", additions=1160)]
+        r = risk.classify(CONF, files)
+        self.assertEqual(r.tier, "standard")
+        self.assertFalse(any(x.startswith("差分が大きい") for x in r.reasons))
+
+    def test_large_change_still_counts_non_lockfile_lines(self):
+        files = [F("src/app.ts", additions=900), F("pnpm-lock.yaml", additions=1000)]
+        r = risk.classify(CONF, files)
+        self.assertEqual(r.tier, "critical")
+        self.assertTrue(any("lockfile の 1000 行を除く" in x for x in r.reasons))
+
+    def test_large_change_counts_rename_from_lockfile(self):
+        # lockfile からのリネームは除かない（lockfile を装って行を隠せないように）
+        f = F("src/app.ts", status="renamed", previous_filename="pnpm-lock.yaml", additions=900)
+        self.assertEqual(tier(f), "critical")
+
+    def test_large_change_without_exclude_counts_lockfile(self):
+        conf = {**CONF, "signals": {**CONF["signals"], "large_change": {"bump": 1}}}
+        files = [F("src/app.ts", additions=10), F("pnpm-lock.yaml", additions=1000)]
+        self.assertEqual(risk.classify(conf, files).tier, "critical")
+
     def test_adr_impact_in_body(self):
         body = "## ADR への影響\n\n0014 を改訂する\n\n## 出典"
         self.assertEqual(tier("src/app.ts", body=body), "critical")
