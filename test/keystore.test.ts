@@ -75,3 +75,74 @@ describe("SecretKeyStore", () => {
     ).toThrow();
   });
 });
+
+const generatePrivateJwk = async (kid: string) => {
+  const pair = (await crypto.subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign", "verify"],
+  )) as CryptoKeyPair;
+  const jwk = (await crypto.subtle.exportKey(
+    "jwk",
+    pair.privateKey,
+  )) as JsonWebKey;
+  return JSON.stringify({ ...jwk, kid });
+};
+
+describe("SecretKeyStore（鍵の版の併存）", () => {
+  const data = new TextEncoder().encode("header.payload");
+
+  it("新旧2つの版の鍵で署名したものが、どちらも検証できる", async () => {
+    const oldJwk = await generatePrivateJwk("v1");
+    const newJwk = await generatePrivateJwk("v2");
+    const oldStore = new SecretKeyStore(oldJwk);
+    const oldSignature = await oldStore.sign(data);
+
+    // 入れ替え後：今の版は v2、前の版は v1
+    const store = SecretKeyStore.fromEnv({
+      SIGNING_KEY_JWK: newJwk,
+      SIGNING_KEY_JWK_PREVIOUS: oldJwk,
+    });
+    const newSignature = await store.sign(data);
+
+    expect(await store.keyVersion()).toBe("v2");
+    expect(await store.verify(data, newSignature, "v2")).toBe(true);
+    expect(await store.verify(data, oldSignature, "v1")).toBe(true);
+    expect((await store.publicKeys()).map((k) => k.kid)).toEqual(["v2", "v1"]);
+  });
+
+  it("知らない版の署名は失敗する", async () => {
+    const store = new SecretKeyStore(await generatePrivateJwk("v2"));
+    const signature = await store.sign(data);
+    expect(await store.verify(data, signature, "v9")).toBe(false);
+  });
+
+  it("版を取り違えた署名は失敗する", async () => {
+    const oldJwk = await generatePrivateJwk("v1");
+    const store = new SecretKeyStore(await generatePrivateJwk("v2"), oldJwk);
+    const signature = await store.sign(data);
+    expect(await store.verify(data, signature, "v1")).toBe(false);
+  });
+
+  it("前の版の公開鍵に秘密の部分（d）を含めない", async () => {
+    const store = new SecretKeyStore(
+      await generatePrivateJwk("v2"),
+      await generatePrivateJwk("v1"),
+    );
+    for (const key of await store.publicKeys()) {
+      expect(key).not.toHaveProperty("d");
+    }
+  });
+
+  it("2つの版の kid が同じなら失敗する", async () => {
+    const jwk = await generatePrivateJwk("v1");
+    expect(() => new SecretKeyStore(jwk, jwk)).toThrow(/kid/);
+  });
+
+  it("前の版がないときは今の版だけを持つ", async () => {
+    const store = SecretKeyStore.fromEnv({
+      SIGNING_KEY_JWK: await generatePrivateJwk("v1"),
+    });
+    expect((await store.publicKeys()).map((k) => k.kid)).toEqual(["v1"]);
+  });
+});
