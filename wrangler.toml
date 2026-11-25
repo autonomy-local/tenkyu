@@ -8,6 +8,6 @@ preview_urls = false
 # 手元とテストでは使わない（--local と vitest-pool-workers は名前だけで手元の D1 を作る）。
 [[d1_databases]]
 binding = "DB"
-database_name = "tenkyu"
+database_name = "tenkyu-db"
 database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "migrations"
