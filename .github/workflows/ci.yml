@@ -56,7 +56,23 @@ jobs:
             python3 scripts/check-kickoff.py
           fi
 
-      # lint・型検査・テストは #5（今-3）で足す
+      # 型検査・lint・テスト（今-3）。ツールは Nix の開発シェルのものを使う（AGENTS.md）
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: 依存を入れる
+        run: nix develop --command pnpm install --frozen-lockfile
+
+      - name: 型検査
+        run: nix develop --command pnpm run typecheck
+
+      - name: lint
+        run: nix develop --command pnpm run lint
+
+      - name: テスト
+        run: nix develop --command pnpm run test
 
   # 開発環境（flake）の検査：整形、pre-commit のフック（gitleaks）、devShell の評価。
   # 必須のチェックではない（重いので、落ちたら直す運用）。必須にするならルールセットに nix を足す。
