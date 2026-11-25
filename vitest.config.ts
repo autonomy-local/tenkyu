@@ -1,7 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
+import {
+  cloudflareTest,
+  readD1Migrations,
+} from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
 // NixOS 等で MINIFLARE_WORKERD_PATH が未設定の場合、npm の workerd を実行可能にする互換設定
@@ -44,8 +47,19 @@ if (process.platform === "linux" && !process.env.MINIFLARE_WORKERD_PATH) {
 
 export default defineConfig({
   plugins: [
-    cloudflareTest({
+    cloudflareTest(async () => ({
       wrangler: { configPath: "./wrangler.toml" },
-    }),
+      // migrations/ を読み、テストの前に test/apply-migrations.ts で手元の D1 に当てる
+      miniflare: {
+        bindings: {
+          TEST_MIGRATIONS: await readD1Migrations(
+            join(process.cwd(), "migrations"),
+          ),
+        },
+      },
+    })),
   ],
+  test: {
+    setupFiles: ["./test/apply-migrations.ts"],
+  },
 });
