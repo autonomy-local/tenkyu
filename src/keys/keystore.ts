@@ -24,6 +24,14 @@ export interface KeyStore {
   keyVersion(): Promise<string>;
   /** データに署名する。署名は JWS の形（r‖s の64バイト） */
   sign(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>>;
-  /** 検証に使う公開鍵 */
+  /** 検証に使う公開鍵（今の版） */
   publicKey(): Promise<PublicJwk>;
+  /** 検証に使える公開鍵の全部（今の版と、入れ替えの間だけ残す前の版） */
+  publicKeys(): Promise<PublicJwk[]>;
+  /** 署名を、`kid` の版の公開鍵で確かめる。知らない版なら false */
+  verify(
+    data: Uint8Array<ArrayBuffer>,
+    signature: Uint8Array<ArrayBuffer>,
+    kid: string,
+  ): Promise<boolean>;
 }

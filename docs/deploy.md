@@ -38,6 +38,24 @@ fork した人が同じ構成を自分の Cloudflare アカウントに立てら
 
 ### 秘密の値
 
+#### 署名の鍵の版
+
+署名の鍵は2つの秘密の値に置きます（`src/keys/secret-keystore.ts`）。
+
+| 秘密の値 | 中身 | 使い道 |
+| --- | --- | --- |
+| `SIGNING_KEY_JWK` | 今の版の秘密鍵（P-256 の JWK。`kid` に版の名前を入れる） | 署名と検証 |
+| `SIGNING_KEY_JWK_PREVIOUS` | 前の版の鍵（任意。秘密鍵でも公開鍵でもよい） | 検証だけ |
+
+入れ替えの手順：
+
+1. 新しい鍵を作り、`kid` に新しい版の名前（例：`2026-12-v2`）を入れる
+2. 今の `SIGNING_KEY_JWK` の値を `SIGNING_KEY_JWK_PREVIOUS` に入れる（`wrangler secret put SIGNING_KEY_JWK_PREVIOUS`）
+3. 新しい鍵を `SIGNING_KEY_JWK` に入れる（`wrangler secret put SIGNING_KEY_JWK`）。ここから署名は新しい版になり、前の版で署名したものも検証できる
+4. 前の版で署名したものの期限がすべて切れたら、`SIGNING_KEY_JWK_PREVIOUS` を消す（`wrangler secret delete SIGNING_KEY_JWK_PREVIOUS`）
+
+2つの値の `kid` が同じだと、Worker は起動の時に失敗します。
+
 ### 配備
 
 ### 運営者を足す・外す
