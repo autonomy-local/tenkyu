@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "localId": "uid-alice",
+      "email": "alice@example.com",
+      "emailVerified": true,
+      "disabled": false,
+      "createdAt": "1700000000000"
+    },
+    {
+      "localId": "uid-bob",
+      "email": "Bob@Example.com ",
+      "emailVerified": false,
+      "passwordHash": "dummy-hash",
+      "salt": "dummy-salt",
+      "createdAt": "1700000001000"
+    },
+    {
+      "localId": "uid-no-email",
+      "phoneNumber": "+810000000000",
+      "createdAt": "1700000002000"
+    },
+    {
+      "localId": "uid-carol-1",
+      "email": "carol@example.com",
+      "createdAt": "1700000003000"
+    },
+    {
+      "localId": "uid-carol-2",
+      "email": "CAROL@example.com",
+      "createdAt": "1700000004000"
+    },
+    {
+      "localId": "uid-disabled",
+      "email": "dave@example.com",
+      "disabled": true,
+      "createdAt": "1700000005000"
+    }
+  ]
+}
