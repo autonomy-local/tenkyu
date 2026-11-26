@@ -5,6 +5,8 @@ declare global {
     interface Env {
       DB: D1Database;
       TEST_MIGRATIONS: D1Migration[];
+      /** 結合テストの仮のサービス（test/fixtures/service/） */
+      SERVICE: Fetcher;
     }
   }
 }
