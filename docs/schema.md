@@ -19,6 +19,7 @@ Tenkyu のデータベース（Cloudflare D1）のスキーマ定義です。
 | `0002_sessions.sql` | `sessions` | サーバー側のセッション（ログイン状態）の管理 |
 | `0003_auth_events.sql` | `auth_events` | 認証の監査記録（入力値は持たない） |
 | `0004_email_codes.sql` | `email_codes` | メール確認コードの一時保持（宛先とコードはハッシュ） |
+| `0005_principals.sql` | `local_principals`、`local_session_policies` | Mizucho なしで動かすときの、主体の台帳の簡単な中身 |
 
 ---
 
@@ -130,3 +131,34 @@ Tenkyu のデータベース（Cloudflare D1）のスキーマ定義です。
 - **主キー**: `PRIMARY KEY (id)`
 - **インデックス**: `CREATE INDEX idx_email_codes_lookup ON email_codes (destination_hash, expires_at);`  
   宛先ハッシュと有効期限による高速な検証検索に使用します。
+
+---
+
+### 5. `local_principals`・`local_session_policies`（D1 に置く主体の台帳）
+
+Mizucho なしで Tenkyu を動かすための、主体の台帳の簡単な中身（`src/principals/d1.ts`）が使う表です。
+本番の台帳は Mizucho で、そのときはこの2つの表を使いません（基本方針の「主体の台帳を持たない」は本番の構成のことです）。
+個人の情報は持たず、主体の ID と状態、サービスごとのセッションの制限（数字だけ）を持ちます。
+
+#### `local_principals` の列一覧
+
+| 列名 | 型 | NULL | 初期値 | 意味・説明 |
+| --- | --- | --- | --- | --- |
+| `id` | `TEXT` | 否 | なし | 主キー。主体の ID（UUIDv4）。Tenkyu の `sub` |
+| `status` | `TEXT` | 否 | `'active'` | 主体の状態（`'active'` または `'suspended'`）。`'active'` 以外は認証できない |
+| `created_at` | `INTEGER` | 否 | なし | 主体の作成時刻（UNIX エポック秒） |
+
+#### `local_session_policies` の列一覧
+
+| 列名 | 型 | NULL | 初期値 | 意味・説明 |
+| --- | --- | --- | --- | --- |
+| `principal_id` | `TEXT` | 否 | なし | 主体の ID（`local_principals.id`） |
+| `service` | `TEXT` | 否 | なし | サービスの識別子（例: `'engawa'`, `'bunko'`） |
+| `max_concurrent_sessions` | `INTEGER` | 否 | なし | 同時に持てるセッションの上限（`0` はログイン不可） |
+| `idle_timeout_seconds` | `INTEGER` | 否 | なし | 無操作で失効するまでの秒数 |
+
+#### 制約
+
+- **主キー**: `local_principals` は `PRIMARY KEY (id)`、`local_session_policies` は `PRIMARY KEY (principal_id, service)`
+- **検査**: `status` は `'active'` か `'suspended'`、`max_concurrent_sessions` は 0 以上、`idle_timeout_seconds` は 1 以上
+- **既定の値**: 主体とサービスの行がないときは、同時のセッションは `1`、無操作の時間は `1800` 秒（30分）を返します
