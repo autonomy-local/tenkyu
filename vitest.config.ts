@@ -58,7 +58,11 @@ export default defineConfig({
         },
         // 結合テスト：仮のサービスの Worker を並べて立て、Service Binding で Tenkyu を呼ばせる。
         // テストの中の Tenkyu は「vitest-pool-workers-runner-<test.name>」という名前で立つので、その名前に結ぶ
-        serviceBindings: { SERVICE: "fixture-service" },
+        // 仮の台帳（test/fixtures/ledger/）も同じく並べて立て、Tenkyu から LEDGER で呼ぶ
+        serviceBindings: {
+          SERVICE: "fixture-service",
+          LEDGER: "fixture-ledger",
+        },
         workers: [
           {
             name: "fixture-service",
@@ -66,6 +70,12 @@ export default defineConfig({
             scriptPath: "./test/fixtures/service/index.js",
             compatibilityDate: "2024-04-05",
             serviceBindings: { TENKYU: "vitest-pool-workers-runner-tenkyu" },
+          },
+          {
+            name: "fixture-ledger",
+            modules: true,
+            scriptPath: "./test/fixtures/ledger/index.js",
+            compatibilityDate: "2024-04-05",
           },
         ],
       },
