@@ -20,6 +20,7 @@ Tenkyu のデータベース（Cloudflare D1）のスキーマ定義です。
 | `0003_auth_events.sql` | `auth_events` | 認証の監査記録（入力値は持たない） |
 | `0004_email_codes.sql` | `email_codes` | メール確認コードの一時保持（宛先とコードはハッシュ） |
 | `0005_principals.sql` | `local_principals`、`local_session_policies` | Mizucho なしで動かすときの、主体の台帳の簡単な中身 |
+| `0006_passkeys.sql` | `passkeys`、`passkey_challenges` | パスキーの公開鍵と、登録・ログインのチャレンジ |
 
 ---
 
@@ -162,3 +163,54 @@ Mizucho なしで Tenkyu を動かすための、主体の台帳の簡単な中�
 - **主キー**: `local_principals` は `PRIMARY KEY (id)`、`local_session_policies` は `PRIMARY KEY (principal_id, service)`
 - **検査**: `status` は `'active'` か `'suspended'`、`max_concurrent_sessions` は 0 以上、`idle_timeout_seconds` は 1 以上
 - **既定の値**: 主体とサービスの行がないときは、同時のセッションは `1`、無操作の時間は `1800` 秒（30分）を返します
+
+---
+
+### 6. `passkeys`（パスキー）
+
+主体が登録したパスキー（WebAuthn の資格情報）の公開鍵を置く表です。
+1つの主体に、端末ごとに複数のパスキーを登録できます。秘密鍵と署名のデータは持ちません。
+
+#### 列一覧
+
+| 列名 | 型 | NULL | 初期値 | 意味・説明 |
+| --- | --- | --- | --- | --- |
+| `id` | `TEXT` | 否 | なし | 主キー。行の一意識別子（UUIDv4） |
+| `sub` | `TEXT` | 否 | なし | 主体の ID。OIDC の `sub` クレームに対応 |
+| `credential_id` | `TEXT` | 否 | なし | 資格情報の ID（WebAuthn の credential ID、base64url） |
+| `public_key` | `BLOB` | 否 | なし | 公開鍵（COSE の形のバイト列） |
+| `sign_count` | `INTEGER` | 否 | `0` | 署名の回数。複製された認証器を見分けるために、ログインのたびに比べて更新する |
+| `name` | `TEXT` | 否 | なし | 利用者が付けた名前（例: 「仕事の PC」）。管理の画面で見分けるため |
+| `created_at` | `INTEGER` | 否 | なし | 登録の時刻（UNIX エポック秒） |
+| `last_used_at` | `INTEGER` | 可 | `NULL` | 最後にログインに使った時刻（UNIX エポック秒）。まだ使っていなければ `NULL` |
+
+#### 制約
+
+- **主キー**: `PRIMARY KEY (id)`
+- **一意制約**: `UNIQUE (credential_id)`。同じ資格情報を二重に登録させない
+- **インデックス**: `CREATE INDEX idx_passkeys_sub ON passkeys (sub);`  
+  主体のパスキーの一覧（管理の画面）に使います。
+
+---
+
+### 7. `passkey_challenges`（パスキーのチャレンジ）
+
+パスキーの登録とログインで発行するチャレンジを、一度だけ使えるように置く表です。
+
+#### ハッシュ保持の原則
+
+- チャレンジの値は平文で持たず、ハッシュ（`challenge_hash`）で持ちます。確かめるときは、届いた値のハッシュで行を引きます。
+
+#### 列一覧
+
+| 列名 | 型 | NULL | 初期値 | 意味・説明 |
+| --- | --- | --- | --- | --- |
+| `challenge_hash` | `TEXT` | 否 | なし | 主キー。チャレンジの値のハッシュ |
+| `expires_at` | `INTEGER` | 否 | なし | 有効期限の時刻（UNIX エポック秒） |
+| `consumed_at` | `INTEGER` | 可 | `NULL` | 使用済みの時刻（UNIX エポック秒。未使用時は `NULL`） |
+
+#### 制約
+
+- **主キー**: `PRIMARY KEY (challenge_hash)`
+- **インデックス**: `CREATE INDEX idx_passkey_challenges_expires_at ON passkey_challenges (expires_at);`  
+  期限を過ぎたチャレンジの消去に使います。
