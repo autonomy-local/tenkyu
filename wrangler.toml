@@ -11,3 +11,7 @@ binding = "DB"
 database_name = "tenkyu-db"
 database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "migrations"
+
+[vars]
+# 主体の台帳の中身（src/principals/index.ts）。今は d1 だけ。Mizucho の中身を足したら切り替える
+PRINCIPALS_BACKEND = "d1"
