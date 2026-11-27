@@ -56,10 +56,24 @@ export default defineConfig({
             join(process.cwd(), "migrations"),
           ),
         },
+        // 結合テスト：仮のサービスの Worker を並べて立て、Service Binding で Tenkyu を呼ばせる。
+        // テストの中の Tenkyu は「vitest-pool-workers-runner-<test.name>」という名前で立つので、その名前に結ぶ
+        serviceBindings: { SERVICE: "fixture-service" },
+        workers: [
+          {
+            name: "fixture-service",
+            modules: true,
+            scriptPath: "./test/fixtures/service/index.js",
+            compatibilityDate: "2024-04-05",
+            serviceBindings: { TENKYU: "vitest-pool-workers-runner-tenkyu" },
+          },
+        ],
       },
     })),
   ],
   test: {
+    // 仮のサービスから結ぶ名前（上の TENKYU）を決めるために固定する
+    name: "tenkyu",
     setupFiles: ["./test/apply-migrations.ts"],
   },
 });
