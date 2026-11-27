@@ -7,6 +7,8 @@ declare global {
       TEST_MIGRATIONS: D1Migration[];
       /** 結合テストの仮のサービス（test/fixtures/service/） */
       SERVICE: Fetcher;
+      /** 結合テストの仮の台帳（test/fixtures/ledger/） */
+      LEDGER: Fetcher;
     }
   }
 }

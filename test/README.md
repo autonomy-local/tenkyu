@@ -9,6 +9,7 @@
 | Tenkyu の Worker | `wrangler.toml` の `main`（`src/index.ts`） | `SELF.fetch(...)`（`cloudflare:test`） |
 | 手元の D1 | `wrangler.toml` の `DB`。テストの前に `migrations/` を当てる（`test/apply-migrations.ts`） | `env.DB` |
 | 仮のサービスの Worker | `test/fixtures/service/index.js`。engawa や Bunko の代わり | `env.SERVICE.fetch(...)` |
+| 仮の台帳の Worker | `test/fixtures/ledger/index.js`。Mizucho の代わり（docs/ledger-contract.md の3つの口） | `env.LEDGER.fetch(...)` |
 
 ## 結合テスト（Service Binding）
 
@@ -21,6 +22,17 @@
 - 仮のサービスは `vitest.config.ts` の `miniflare.workers` に置き、ビルドせずにそのまま読み込みます。TypeScript でなく JavaScript で書きます
 - 仮のサービスの `TENKYU` は、テストの中の Tenkyu の名前 `vitest-pool-workers-runner-tenkyu` に結びます。この名前は `test.name`（`tenkyu`）から決まるので、`test.name` を変えたら合わせて直します
 - 仮のサービスに口を足すときは、`test/fixtures/service/index.js` にパスを足し、`test/` にテストを置きます。例は `test/service-binding.test.ts`（`/healthz` を呼ぶ）
+
+## 仮の台帳
+
+Tenkyu から台帳（本番は Mizucho）を Service Binding で呼ぶ形を、仮の台帳で作ります。
+
+```
+テスト（Tenkyu の中）──env.LEDGER──▶ 仮の台帳
+```
+
+- 口の HTTP の形（`POST /principals` など）は仮の台帳のものです。Mizucho の実際の形は、Mizucho の中身（今-9c）で合わせます
+- 応えないふるまいは `POST /__control` で切り替えます（`normal`、`error`、`hang`、`reset`）。台帳の状態は全部のテストのファイルで共有するので、切り替えたテストは `afterEach` で `reset` に戻します。例は `test/fake-ledger.test.ts`
 
 ## よく使うコマンド
 
