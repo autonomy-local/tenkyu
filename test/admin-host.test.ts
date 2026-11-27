@@ -2,7 +2,7 @@ import { env, SELF } from "cloudflare:test";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { type AdminHostBindings, adminHostOnly } from "../src/admin/host";
-import app from "../src/index";
+import { app } from "../src/index";
 
 const ADMIN_HOST = "admin.tenkyu.example";
 
