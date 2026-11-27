@@ -56,6 +56,27 @@ fork した人が同じ構成を自分の Cloudflare アカウントに立てら
 
 2つの値の `kid` が同じだと、Worker は起動の時に失敗します。
 
+#### メールの送信（Resend）
+
+確認コードのメールは Resend で送ります（`src/mail/`）。送信の中身は設定 `MAILER` で選びます。
+
+| 設定 | 種類 | 中身 |
+| --- | --- | --- |
+| `MAILER` | vars | `resend`（本番）か `memory`（手元とテスト。送らずに残すだけ）。ほかの値や空だと、メールを送るときに例外で止まる |
+| `RESEND_API_KEY` | 秘密の値 | Resend の API キー。送信だけの権限（Sending access）で、送信元のドメインに絞って作る |
+| `MAIL_FROM` | vars | 差出人（例：`Tenkyu <no-reply@auth.example.org>`）。Resend で確かめ済みのドメインのアドレスにする |
+
+手順：
+
+1. Resend で送信元のドメインを足し、表示された DNS のレコード（SPF の TXT、DKIM の TXT、戻りの MX）を、そのドメインの DNS に足す。Resend の画面でドメインが確かめ済みになるまで待つ
+2. DMARC の TXT（`_dmarc.<ドメイン>`、まず `p=none`）を足す。届かないメールの報告を見てから強める
+3. Resend で API キーを作る。権限は「Sending access」、ドメインは 1. のものに絞る。キーは画面に一度しか出ないので、そのまま次の手順で入れる（手元のファイルやチャットに貼らない）
+4. Worker に秘密の値を入れる：`wrangler secret put RESEND_API_KEY`
+5. `MAILER = "resend"` と `MAIL_FROM` を配備先の vars に入れる（配備先ごとの値なので、Pulumi の Worker の設定で入れる。今-6c）
+6. テスト環境でログインのコードを1通送り、届くこと、`auth_events` に `code_send` の `success` が残ることを確かめる
+
+キーの入れ替えは [runbook/rotate-secrets.md](runbook/rotate-secrets.md) の手順に従います。
+
 ### 配備
 
 ### 運営者を足す・外す
